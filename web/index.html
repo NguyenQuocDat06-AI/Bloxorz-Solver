@@ -764,6 +764,107 @@
       font-size: 10px;
       color: var(--text-sub);
     }
+
+    /* Thẻ Luật Chơi (Rule Pills) */
+    .rule-pill {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 9.5px;
+      font-weight: 700;
+      padding: 2.5px 7px;
+      border-radius: 5px;
+      margin-left: auto;
+      white-space: nowrap;
+      letter-spacing: 0.2px;
+    }
+
+    .rule-safe {
+      background: rgba(16, 185, 129, 0.15);
+      border: 1px solid rgba(16, 185, 129, 0.35);
+      color: #34d399;
+    }
+
+    .rule-danger {
+      background: rgba(239, 68, 68, 0.22);
+      border: 1px solid rgba(239, 68, 68, 0.55);
+      color: #f87171;
+    }
+
+    .rule-bridge {
+      background: rgba(14, 165, 233, 0.15);
+      border: 1px solid rgba(14, 165, 233, 0.4);
+      color: #38bdf8;
+    }
+
+    .rule-soft {
+      background: rgba(234, 179, 8, 0.15);
+      border: 1px solid rgba(234, 179, 8, 0.4);
+      color: #facc15;
+    }
+
+    .rule-heavy {
+      background: rgba(244, 63, 94, 0.18);
+      border: 1px solid rgba(244, 63, 94, 0.45);
+      color: #fb7185;
+    }
+
+    .rule-split {
+      background: rgba(168, 85, 247, 0.18);
+      border: 1px solid rgba(168, 85, 247, 0.45);
+      color: #c084fc;
+    }
+
+    .rule-goal {
+      background: rgba(245, 158, 11, 0.2);
+      border: 1px solid rgba(245, 158, 11, 0.5);
+      color: #fbbf24;
+    }
+
+    /* Biểu tượng tư thế trực quan (Orient Schematic) */
+    .orient-badge-group {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .orient-schematic {
+      width: 24px;
+      height: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(0, 0, 0, 0.45);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 6px;
+    }
+
+    /* Radar Bản Đồ Ma Trận 2D (Mini-Map) */
+    .radar-container {
+      width: 100%;
+      height: 125px;
+      background: rgba(3, 7, 18, 0.85);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 12px;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+    }
+
+    #radar-canvas {
+      display: block;
+      max-width: 100%;
+      max-height: 100%;
+    }
+
+    .radar-legend {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 10.5px;
+      color: var(--text-sub);
+      padding: 0 4px;
+    }
   </style>
 </head>
 
@@ -841,8 +942,7 @@
         <span>🗺️</span> Đổi Màn Chơi (20 Stages)
       </button>
     </div>
-
-    <!-- Thẻ Trạng Thái & Số Bước -->
+      <!-- Thẻ Trạng Thái & Số Bước -->
     <div class="card">
       <div class="card-head"><span>TRẠNG THÁI KHỐI HỘP</span></div>
       <div class="telemetry-row">
@@ -850,12 +950,37 @@
         <span class="telemetry-val counter-hero" id="ui-moves">0</span>
       </div>
       <div class="telemetry-row">
-        <span class="telemetry-key">Tư thế:</span>
-        <span class="telemetry-val" id="ui-orient">Standing (1 × 1)</span>
+        <span class="telemetry-key">Tư thế khối:</span>
+        <div class="orient-badge-group">
+          <div class="orient-schematic" id="orient-icon">
+            <svg width="18" height="18" viewBox="0 0 18 18"><rect x="4" y="2" width="10" height="14" rx="2" fill="#c25e16" stroke="#fbbf24" stroke-width="1.2"/></svg>
+          </div>
+          <span class="telemetry-val" id="ui-orient">Standing (1 × 1)</span>
+        </div>
+      </div>
+      <div class="telemetry-row">
+        <span class="telemetry-key">Ô đang đứng:</span>
+        <span class="telemetry-val" id="ui-current-tile" style="font-size: 12.5px; color: #38bdf8;">Sàn Chuẩn [1]</span>
       </div>
       <div class="telemetry-row">
         <span class="telemetry-key">Trạng thái:</span>
         <span class="status-badge status-playing" id="ui-status">PLAYING</span>
+      </div>
+    </div>
+
+    <!-- Thẻ Bản Đồ Ma Trận 2D (Mini-Map Radar) -->
+    <div class="card">
+      <div class="card-head">
+        <span>BẢN ĐỒ MA TRẬN 2D (RADAR)</span>
+        <span class="tag-badge" id="radar-dim">--×--</span>
+      </div>
+      <div class="radar-container">
+        <canvas id="radar-canvas" width="330" height="125"></canvas>
+      </div>
+      <div class="radar-legend" style="margin-top: 8px;">
+        <span>🟦 Khối Bloxorz</span>
+        <span>🟧 Gạch vỡ</span>
+        <span>🎯 Đích đến</span>
       </div>
     </div>
 
@@ -927,48 +1052,55 @@
             <span class="legend-title">Sàn Chuẩn</span>
             <span class="legend-desc">Chịu lực ở mọi tư thế</span>
           </div>
+          <span class="rule-pill rule-safe">AN TOÀN</span>
         </div>
         <div class="legend-item">
           <div class="legend-swatch swatch-fragile">2</div>
           <div class="legend-text">
             <span class="legend-title">Gạch Vỡ (Cam nứt)</span>
-            <span class="legend-desc">Chỉ được nằm, đứng sẽ sập</span>
+            <span class="legend-desc">Chỉ được LĂN NẰM qua</span>
           </div>
+          <span class="rule-pill rule-danger">ĐỨNG = SẬP ⚠️</span>
         </div>
         <div class="legend-item">
           <div class="legend-swatch swatch-bridge">3</div>
           <div class="legend-text">
-            <span class="legend-title">Cầu Nối (Nan kim loại)</span>
+            <span class="legend-title">Cầu Nối Nan Thép</span>
             <span class="legend-desc">Đóng/mở theo công tắc</span>
           </div>
+          <span class="rule-pill rule-bridge">ĐÓNG / MỞ</span>
         </div>
         <div class="legend-item">
           <div class="legend-swatch swatch-soft">4</div>
           <div class="legend-text">
-            <span class="legend-title">Công Tắc Tròn (Vàng)</span>
-            <span class="legend-desc">Chạm vào ở mọi tư thế</span>
+            <span class="legend-title">Công Tắc Tròn (●)</span>
+            <span class="legend-desc">Nằm hoặc Đứng đều được</span>
           </div>
+          <span class="rule-pill rule-soft">MỌI TƯ THẾ</span>
         </div>
         <div class="legend-item">
           <div class="legend-swatch swatch-heavy">5</div>
           <div class="legend-text">
-            <span class="legend-title">Công Tắc Chữ X (Đỏ)</span>
-            <span class="legend-desc">Phải ĐỨNG mới kích hoạt</span>
+            <span class="legend-title">Công Tắc Chữ X (✖)</span>
+            <span class="legend-desc">Cần lực nén thẳng đứng</span>
           </div>
+          <span class="rule-pill rule-heavy">CẦN ĐỨNG</span>
         </div>
         <div class="legend-item">
           <div class="legend-swatch swatch-split">6</div>
           <div class="legend-text">
-            <span class="legend-title">Tách Khối (Pha lê tím)</span>
-            <span class="legend-desc">Phải ĐỨNG, tách 2 khối 1×1</span>
+            <span class="legend-title">Tách Khối (⯁ Tím)</span>
+            <span class="legend-desc">Chia thành 2 khối 1×1</span>
           </div>
+          <span class="rule-pill rule-split">CẦN ĐỨNG</span>
         </div>
         <div class="legend-item">
           <div class="legend-swatch swatch-goal">9</div>
           <div class="legend-text">
-            <span class="legend-title">Ô Đích (Hố Đen Vàng)</span>
+            <span class="legend-title">Ô Đích (🎯 Hố Đen)</span>
             <span class="legend-desc">ĐỨNG lọt hố để chiến thắng</span>
           </div>
+          <span class="rule-pill rule-goal">CẦN ĐỨNG 🏆</span>
         </div>
       </div>
     </div>
@@ -1066,49 +1198,49 @@
     }
 
     /* =========================================================================
-       4. TỰ SINH CHẤT LIỆU TEXTURE CHO BÀN CỜ VÀ KHỐI HỘP
+       4. TỰ SINH CHẤT LIỆU TEXTURE CHO BÀN CỜ VÀ KHỐI HỘP (ANTI-GLARE / DỊU MẮT)
        ========================================================================= */
-    // 1. Texture Sàn Chuẩn (Hi-tech Slate Grid)
+    // 1. Texture Sàn Chuẩn (Hi-tech Slate Grid - Chống chói, tông màu sâu)
     function makeTileTexture() {
       const c = document.createElement('canvas'); c.width = 512; c.height = 512;
       const ctx = c.getContext('2d');
       const grad = ctx.createLinearGradient(0, 0, 512, 512);
-      grad.addColorStop(0, '#243044'); grad.addColorStop(1, '#111827');
+      grad.addColorStop(0, '#1c2433'); grad.addColorStop(1, '#0e141f');
       ctx.fillStyle = grad; ctx.fillRect(0, 0, 512, 512);
-      for (let i = 0; i < 9000; i++) {
-        ctx.fillStyle = Math.random() > 0.5 ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.12)';
+      for (let i = 0; i < 7000; i++) {
+        ctx.fillStyle = Math.random() > 0.5 ? 'rgba(255,255,255,0.025)' : 'rgba(0,0,0,0.15)';
         ctx.fillRect(Math.random() * 512, Math.random() * 512, 2, 2);
       }
-      ctx.strokeStyle = 'rgba(56, 189, 248, 0.45)'; ctx.lineWidth = 6; ctx.strokeRect(6, 6, 500, 500);
+      ctx.strokeStyle = 'rgba(56, 189, 248, 0.25)'; ctx.lineWidth = 5; ctx.strokeRect(6, 6, 500, 500);
       return new THREE.CanvasTexture(c);
     }
 
-    // 2. Texture Gạch Vỡ Màu Cam (Cracked Orange Fragile Tile)
+    // 2. Texture Gạch Vỡ Màu Cam (Cracked Terracotta Volcanic Tile - Không bị vàng chói)
     function makeFragileTexture() {
       const c = document.createElement('canvas'); c.width = 512; c.height = 512;
       const ctx = c.getContext('2d');
       const grad = ctx.createLinearGradient(0, 0, 512, 512);
-      grad.addColorStop(0, '#c2410c');
-      grad.addColorStop(0.5, '#ea580c');
-      grad.addColorStop(1, '#9a3412');
+      grad.addColorStop(0, '#832808');
+      grad.addColorStop(0.5, '#9a3412');
+      grad.addColorStop(1, '#5a1d08');
       ctx.fillStyle = grad; ctx.fillRect(0, 0, 512, 512);
 
-      for (let i = 0; i < 7000; i++) {
-        ctx.fillStyle = Math.random() > 0.5 ? 'rgba(255, 237, 213, 0.08)' : 'rgba(40, 10, 0, 0.2)';
+      for (let i = 0; i < 5000; i++) {
+        ctx.fillStyle = Math.random() > 0.5 ? 'rgba(255, 180, 120, 0.05)' : 'rgba(20, 5, 0, 0.25)';
         ctx.fillRect(Math.random() * 512, Math.random() * 512, 2, 2);
       }
 
       const cracks = [
-        [[60, 50], [130, 140], [220, 180], [330, 190], [460, 180]],
-        [[220, 180], [250, 280], [290, 370], [320, 460]],
-        [[130, 140], [110, 260], [80, 360], [50, 440]],
-        [[330, 190], [390, 280], [460, 350]],
-        [[250, 280], [190, 350], [190, 450]],
-        [[220, 180], [160, 220], [140, 260]]
+        [[50, 40], [120, 130], [210, 170], [330, 180], [470, 170]],
+        [[210, 170], [240, 270], [280, 360], [310, 470]],
+        [[120, 130], [100, 250], [70, 350], [40, 450]],
+        [[330, 180], [390, 270], [470, 350]],
+        [[240, 270], [180, 340], [180, 460]],
+        [[210, 170], [150, 210], [130, 260]]
       ];
 
-      ctx.lineWidth = 5;
-      ctx.strokeStyle = '#290c00';
+      ctx.lineWidth = 6;
+      ctx.strokeStyle = '#1a0700';
       ctx.lineCap = 'round';
       ctx.lineJoin = 'round';
       cracks.forEach(pts => {
@@ -1118,8 +1250,8 @@
         ctx.stroke();
       });
 
-      ctx.lineWidth = 2;
-      ctx.strokeStyle = '#fed7aa';
+      ctx.lineWidth = 2.2;
+      ctx.strokeStyle = '#ea580c';
       cracks.forEach(pts => {
         ctx.beginPath();
         ctx.moveTo(pts[0][0], pts[0][1]);
@@ -1127,9 +1259,15 @@
         ctx.stroke();
       });
 
-      ctx.strokeStyle = 'rgba(251, 146, 60, 0.85)';
+      ctx.strokeStyle = 'rgba(234, 88, 12, 0.65)';
       ctx.lineWidth = 8;
       ctx.strokeRect(6, 6, 500, 500);
+
+      // Ký hiệu cảnh báo vết nứt ở góc
+      ctx.fillStyle = 'rgba(255, 237, 213, 0.7)';
+      ctx.font = 'bold 26px sans-serif';
+      ctx.fillText('⚠', 22, 44);
+
       return new THREE.CanvasTexture(c);
     }
 
@@ -1137,28 +1275,28 @@
     function makeBridgeTexture() {
       const c = document.createElement('canvas'); c.width = 512; c.height = 512;
       const ctx = c.getContext('2d');
-      ctx.fillStyle = '#0b1329';
+      ctx.fillStyle = '#080d1a';
       ctx.fillRect(0, 0, 512, 512);
 
       for (let y = 18; y < 500; y += 34) {
         const slatGrad = ctx.createLinearGradient(0, y, 0, y + 24);
-        slatGrad.addColorStop(0, '#334155');
-        slatGrad.addColorStop(0.5, '#64748b');
-        slatGrad.addColorStop(1, '#1e293b');
+        slatGrad.addColorStop(0, '#1e293b');
+        slatGrad.addColorStop(0.5, '#334155');
+        slatGrad.addColorStop(1, '#0f172a');
         ctx.fillStyle = slatGrad;
         ctx.fillRect(24, y, 464, 24);
 
-        ctx.fillStyle = '#cbd5e1';
+        ctx.fillStyle = '#64748b';
         ctx.beginPath(); ctx.arc(36, y + 12, 3.5, 0, Math.PI * 2); ctx.fill();
         ctx.beginPath(); ctx.arc(476, y + 12, 3.5, 0, Math.PI * 2); ctx.fill();
       }
 
-      ctx.fillStyle = '#00f2fe';
-      ctx.fillRect(10, 10, 8, 492);
-      ctx.fillRect(494, 10, 8, 492);
+      ctx.fillStyle = '#0284c7';
+      ctx.fillRect(10, 10, 7, 492);
+      ctx.fillRect(495, 10, 7, 492);
 
-      ctx.strokeStyle = 'rgba(0, 242, 254, 0.8)';
-      ctx.lineWidth = 6;
+      ctx.strokeStyle = 'rgba(14, 165, 233, 0.45)';
+      ctx.lineWidth = 5;
       ctx.strokeRect(4, 4, 504, 504);
       return new THREE.CanvasTexture(c);
     }
@@ -1168,18 +1306,18 @@
       const c = document.createElement('canvas'); c.width = 512; c.height = 512;
       const ctx = c.getContext('2d');
       const grad = ctx.createLinearGradient(0, 0, 0, 512);
-      grad.addColorStop(0, '#c25e16'); grad.addColorStop(1, '#521f03');
+      grad.addColorStop(0, '#a84e12'); grad.addColorStop(1, '#451a03');
       ctx.fillStyle = grad; ctx.fillRect(0, 0, 512, 512);
       for (let y = 0; y < 512; y += 3) {
-        ctx.fillStyle = `rgba(255, 220, 160, ${0.05 + Math.sin(y * 0.22) * 0.04})`;
+        ctx.fillStyle = `rgba(255, 200, 140, ${0.04 + Math.sin(y * 0.22) * 0.03})`;
         ctx.fillRect(0, y, 512, 2);
       }
-      ctx.strokeStyle = 'rgba(255, 225, 140, 0.85)'; ctx.lineWidth = 10; ctx.strokeRect(5, 5, 502, 502);
+      ctx.strokeStyle = 'rgba(251, 191, 36, 0.65)'; ctx.lineWidth = 8; ctx.strokeRect(6, 6, 500, 500);
       return new THREE.CanvasTexture(c);
     }
 
     /* =========================================================================
-       5. THIẾT LẬP THREE.JS SCENE, CAMERA, ÁNH SÁNG & VẬT THỂ
+       5. THIẾT LẬP THREE.JS SCENE, CAMERA, ÁNH SÁNG & VẬT THỂ (ACES TONE MAPPING)
        ========================================================================= */
     const canvas = document.getElementById('webgl-canvas');
     const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
@@ -1188,8 +1326,12 @@
     renderer.shadowMap.enabled = true;
     renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
+    // ACES Filmic Tone Mapping chống lóa sáng chói mắt
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 0.82;
+
     const scene = new THREE.Scene();
-    scene.fog = new THREE.FogExp2(0x060913, 0.012);
+    scene.fog = new THREE.FogExp2(0x050813, 0.012);
 
     const camera = new THREE.PerspectiveCamera(CAM_FOV, window.innerWidth / window.innerHeight, 0.1, 1000);
     let targetCamPos = new THREE.Vector3(-9, 19, 17);
@@ -1197,12 +1339,12 @@
     camera.position.copy(targetCamPos);
     camera.lookAt(targetCamLook);
 
-    // Ánh sáng môi trường và chiếu bóng
-    scene.add(new THREE.AmbientLight(0xffffff, 0.75));
-    const dirLight = new THREE.DirectionalLight(0xffeedd, 1.9);
+    // Ánh sáng dịu nhẹ, cân bằng, độ tương phản cao, không chói
+    scene.add(new THREE.AmbientLight(0x8fa3bf, 0.38));
+    const dirLight = new THREE.DirectionalLight(0xffedd5, 0.95);
     dirLight.position.set(-22, 45, 18); dirLight.castShadow = true;
     scene.add(dirLight);
-    scene.add(new THREE.DirectionalLight(0x00f2fe, 0.85));
+    scene.add(new THREE.DirectionalLight(0x38bdf8, 0.30));
 
     // Bụi sao và sàn lưới không gian
     const galaxyGeo = new THREE.BufferGeometry();
@@ -1211,31 +1353,31 @@
     galaxyGeo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
     scene.add(new THREE.Points(galaxyGeo, new THREE.PointsMaterial({ size: 0.45, color: 0x38bdf8 })));
 
-    const gridHelper = new THREE.GridHelper(80, 40, 0x00f2fe, 0x1e293b);
+    const gridHelper = new THREE.GridHelper(80, 40, 0x0284c7, 0x1e293b);
     gridHelper.position.y = -8; scene.add(gridHelper);
 
-    // Vật liệu ô sàn đa dạng chuẩn nhận diện Bloxorz
-    const tileMat = new THREE.MeshStandardMaterial({ map: makeTileTexture(), roughness: 0.25, metalness: 0.1 });
-    const fragileMat = new THREE.MeshStandardMaterial({ map: makeFragileTexture(), roughness: 0.55, emissive: 0x9a3412, emissiveIntensity: 0.2 });
-    const bridgeMat = new THREE.MeshStandardMaterial({ map: makeBridgeTexture(), roughness: 0.25, metalness: 0.7, emissive: 0x00f2fe, emissiveIntensity: 0.2 });
-    const sideMat = new THREE.MeshStandardMaterial({ color: 0x182234 });
-    const fragileSideMat = new THREE.MeshStandardMaterial({ color: 0x431407 });
-    const bridgeSideMat = new THREE.MeshStandardMaterial({ color: 0x0f172a });
+    // Vật liệu ô sàn đa dạng chuẩn nhận diện Bloxorz (Tông màu sâu, dịu mắt, chống chói)
+    const tileMat = new THREE.MeshStandardMaterial({ map: makeTileTexture(), roughness: 0.55, metalness: 0.15 });
+    const fragileMat = new THREE.MeshStandardMaterial({ map: makeFragileTexture(), roughness: 0.85, emissive: 0x3d0f00, emissiveIntensity: 0.1 });
+    const bridgeMat = new THREE.MeshStandardMaterial({ map: makeBridgeTexture(), roughness: 0.45, metalness: 0.65, emissive: 0x0369a1, emissiveIntensity: 0.15 });
+    const sideMat = new THREE.MeshStandardMaterial({ color: 0x111827 });
+    const fragileSideMat = new THREE.MeshStandardMaterial({ color: 0x3a1204 });
+    const bridgeSideMat = new THREE.MeshStandardMaterial({ color: 0x090f1d });
 
     // Vật liệu công tắc & chi tiết cơ khí
-    const metalDarkMat = new THREE.MeshStandardMaterial({ color: 0x1e293b, roughness: 0.35, metalness: 0.8 });
-    const boltMat = new THREE.MeshStandardMaterial({ color: 0x94a3b8, roughness: 0.2, metalness: 0.9 });
-    const softSwitchMat = new THREE.MeshStandardMaterial({ color: 0xfacc15, emissive: 0xca8a04, emissiveIntensity: 0.6, roughness: 0.2, metalness: 0.5 });
-    const heavySwitchMat = new THREE.MeshStandardMaterial({ color: 0xf43f5e, emissive: 0xbe123c, emissiveIntensity: 0.7, roughness: 0.25, metalness: 0.4 });
-    const splitSwitchMat = new THREE.MeshStandardMaterial({ color: 0xc084fc, emissive: 0x7e22ce, emissiveIntensity: 0.85, roughness: 0.1, metalness: 0.7 });
-    const goalFrameMat = new THREE.MeshStandardMaterial({ color: 0xd97706, emissive: 0xb45309, emissiveIntensity: 0.6, roughness: 0.3, metalness: 0.8 });
-    const goalHaloMat = new THREE.MeshStandardMaterial({ color: 0xfbbf24, emissive: 0xf59e0b, emissiveIntensity: 1.5, roughness: 0.2 });
+    const metalDarkMat = new THREE.MeshStandardMaterial({ color: 0x1e293b, roughness: 0.5, metalness: 0.7 });
+    const boltMat = new THREE.MeshStandardMaterial({ color: 0x64748b, roughness: 0.3, metalness: 0.8 });
+    const softSwitchMat = new THREE.MeshStandardMaterial({ color: 0xd97706, emissive: 0x92400e, emissiveIntensity: 0.35, roughness: 0.3, metalness: 0.4 });
+    const heavySwitchMat = new THREE.MeshStandardMaterial({ color: 0xe11d48, emissive: 0x9f1239, emissiveIntensity: 0.4, roughness: 0.3, metalness: 0.4 });
+    const splitSwitchMat = new THREE.MeshStandardMaterial({ color: 0x9333ea, emissive: 0x581c87, emissiveIntensity: 0.5, roughness: 0.2, metalness: 0.6 });
+    const goalFrameMat = new THREE.MeshStandardMaterial({ color: 0xb45309, emissive: 0x78350f, emissiveIntensity: 0.35, roughness: 0.4, metalness: 0.7 });
+    const goalHaloMat = new THREE.MeshStandardMaterial({ color: 0xf59e0b, emissive: 0xd97706, emissiveIntensity: 0.8, roughness: 0.3 });
 
     const boardGroup = new THREE.Group();
     scene.add(boardGroup);
 
     // Khối hộp Bloxorz (1x1x2)
-    const blockMat = new THREE.MeshStandardMaterial({ map: makeBlockTexture(), roughness: 0.3 });
+    const blockMat = new THREE.MeshStandardMaterial({ map: makeBlockTexture(), roughness: 0.4, metalness: 0.2 });
     const cubeGeo = new THREE.BoxGeometry(TILE_SCALE * 0.92, TILE_SCALE * 0.92, TILE_SCALE * 0.92);
     const blockMaster = new THREE.Group();
     const cubeA = new THREE.Mesh(cubeGeo, blockMat); cubeA.castShadow = true;
@@ -1458,6 +1600,120 @@
 
       // Tự động căn chỉnh camera và độ phóng to thích ứng theo kích thước stage mới
       setCamera(currentCameraMode);
+      drawRadar();
+    }
+
+    /* =========================================================================
+       UI/UX HELPERS: RADAR 2D VÀ ICON TƯ THẾ TRỰC QUAN
+       ========================================================================= */
+    function updateOrientIcon(orient) {
+      const container = document.getElementById('orient-icon');
+      if (!container) return;
+      if (orient === 0) {
+        container.innerHTML = `<svg width="18" height="18" viewBox="0 0 18 18"><rect x="4" y="2" width="10" height="14" rx="2" fill="#c25e16" stroke="#fbbf24" stroke-width="1.2"/></svg>`;
+      } else if (orient === 1) {
+        container.innerHTML = `<svg width="18" height="18" viewBox="0 0 18 18"><rect x="1" y="5" width="16" height="8" rx="2" fill="#c25e16" stroke="#fbbf24" stroke-width="1.2"/><line x1="9" y1="5" x2="9" y2="13" stroke="#fbbf24" stroke-width="1"/></svg>`;
+      } else {
+        container.innerHTML = `<svg width="18" height="18" viewBox="0 0 18 18"><rect x="5" y="1" width="8" height="16" rx="2" fill="#c25e16" stroke="#fbbf24" stroke-width="1.2"/><line x1="5" y1="9" x2="13" y2="9" stroke="#fbbf24" stroke-width="1"/></svg>`;
+      }
+    }
+
+    function drawRadar() {
+      const radarCanvas = document.getElementById('radar-canvas');
+      if (!radarCanvas || !currentGrid || currentGrid.length === 0) return;
+      const ctx = radarCanvas.getContext('2d');
+      const rows = currentGrid.length;
+      const cols = currentGrid[0].length;
+
+      const width = radarCanvas.width;
+      const height = radarCanvas.height;
+      ctx.clearRect(0, 0, width, height);
+
+      const pad = 10;
+      const cellW = (width - pad * 2) / cols;
+      const cellH = (height - pad * 2) / rows;
+      const cellSize = Math.min(cellW, cellH, 15);
+      const startX = (width - cols * cellSize) / 2;
+      const startY = (height - rows * cellSize) / 2;
+
+      const dimEl = document.getElementById('radar-dim');
+      if (dimEl) dimEl.textContent = `${cols}×${rows}`;
+
+      const tileColors = {
+        0: 'transparent',
+        1: '#1e293b',
+        2: '#9a3412',
+        3: '#0284c7',
+        4: '#ca8a04',
+        5: '#be123c',
+        6: '#7e22ce',
+        7: '#059669',
+        9: '#b45309'
+      };
+
+      for (let r = 0; r < rows; r++) {
+        for (let c = 0; c < cols; c++) {
+          const type = currentGrid[r][c];
+          if (type === 0) continue;
+          const cx = startX + c * cellSize;
+          const cy = startY + r * cellSize;
+
+          ctx.fillStyle = tileColors[type] || '#334155';
+          ctx.strokeStyle = 'rgba(255, 255, 255, 0.12)';
+          ctx.lineWidth = 1;
+          ctx.beginPath();
+          if (ctx.roundRect) ctx.roundRect(cx + 1, cy + 1, cellSize - 2, cellSize - 2, 2);
+          else ctx.rect(cx + 1, cy + 1, cellSize - 2, cellSize - 2);
+          ctx.fill();
+          ctx.stroke();
+
+          if (type === 9) {
+            ctx.fillStyle = '#fde047';
+            ctx.beginPath();
+            ctx.arc(cx + cellSize / 2, cy + cellSize / 2, cellSize * 0.28, 0, Math.PI * 2);
+            ctx.fill();
+          } else if (type === 4) {
+            ctx.fillStyle = '#fef08a';
+            ctx.beginPath();
+            ctx.arc(cx + cellSize / 2, cy + cellSize / 2, cellSize * 0.22, 0, Math.PI * 2);
+            ctx.fill();
+          } else if (type === 5) {
+            ctx.strokeStyle = '#fda4af';
+            ctx.lineWidth = 1.5;
+            ctx.beginPath();
+            ctx.moveTo(cx + 3, cy + 3); ctx.lineTo(cx + cellSize - 3, cy + cellSize - 3);
+            ctx.moveTo(cx + cellSize - 3, cy + 3); ctx.lineTo(cx + 3, cy + cellSize - 3);
+            ctx.stroke();
+          }
+        }
+      }
+
+      // Vẽ vị trí khối hộp Bloxorz phát sáng trên Radar
+      if (currentGrid && gameState === "PLAYING") {
+        ctx.fillStyle = '#00f2fe';
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = 1.5;
+        ctx.shadowColor = '#00f2fe';
+        ctx.shadowBlur = 8;
+
+        if (blockOrient === 0) {
+          const bx = startX + blockC * cellSize;
+          const by = startY + blockR * cellSize;
+          ctx.fillRect(bx + 1, by + 1, cellSize - 2, cellSize - 2);
+          ctx.strokeRect(bx + 1, by + 1, cellSize - 2, cellSize - 2);
+        } else if (blockOrient === 1) {
+          const bx = startX + blockC * cellSize;
+          const by = startY + blockR * cellSize;
+          ctx.fillRect(bx + 1, by + 1, cellSize * 2 - 2, cellSize - 2);
+          ctx.strokeRect(bx + 1, by + 1, cellSize * 2 - 2, cellSize - 2);
+        } else if (blockOrient === 2) {
+          const bx = startX + blockC * cellSize;
+          const by = startY + blockR * cellSize;
+          ctx.fillRect(bx + 1, by + 1, cellSize - 2, cellSize * 2 - 2);
+          ctx.strokeRect(bx + 1, by + 1, cellSize - 2, cellSize * 2 - 2);
+        }
+        ctx.shadowBlur = 0;
+      }
     }
 
     /* =========================================================================
@@ -1490,8 +1746,33 @@
       }
       blockMaster.rotation.set(0, 0, 0);
       document.getElementById('ui-moves').textContent = moves;
-      const orientNames = ["Standing (1 × 1)", "Lying Horizontal", "Lying Vertical"];
+      const orientNames = ["Standing (1 × 1)", "Lying Horizontal (2 × 1)", "Lying Vertical (1 × 2)"];
       document.getElementById('ui-orient').textContent = orientNames[blockOrient];
+
+      // Cập nhật ô đang đứng
+      const tileNames = {
+        0: "Khoảng Trống [0]",
+        1: "Sàn Chuẩn [1]",
+        2: "Gạch Vỡ (Nguy Hiểm) [2] ⚠️",
+        3: "Cầu Nối Nan Thép [3]",
+        4: "Công Tắc Tròn [4]",
+        5: "Công Tắc Chữ X [5]",
+        6: "Tách Khối [6]",
+        7: "Ô Dịch Chuyển [7]",
+        9: "Ô Đích [9] 🎯"
+      };
+      let curType = 1;
+      if (currentGrid && currentGrid[blockR] && currentGrid[blockR][blockC] !== undefined) {
+        curType = currentGrid[blockR][blockC];
+      }
+      const curTileEl = document.getElementById('ui-current-tile');
+      if (curTileEl) {
+        curTileEl.textContent = tileNames[curType] || `Ô [${curType}]`;
+        curTileEl.style.color = curType === 2 ? '#f87171' : (curType === 9 ? '#fbbf24' : '#38bdf8');
+      }
+
+      updateOrientIcon(blockOrient);
+      drawRadar();
     }
 
     function roll(dir, onComplete = null) {
