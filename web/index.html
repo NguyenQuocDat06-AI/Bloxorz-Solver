@@ -1169,6 +1169,42 @@
         gain.connect(audioCtx.destination);
         osc.start(now);
         osc.stop(now + 0.12);
+      } else if (type === 'switch_soft') {
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(540, now);
+        osc.frequency.exponentialRampToValueAtTime(1080, now + 0.08);
+        gain.gain.setValueAtTime(0.25, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.08);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start(now);
+        osc.stop(now + 0.08);
+      } else if (type === 'switch_heavy') {
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(220, now);
+        osc.frequency.exponentialRampToValueAtTime(65, now + 0.22);
+        gain.gain.setValueAtTime(0.38, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.22);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start(now);
+        osc.stop(now + 0.22);
+      } else if (type === 'bridge') {
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(160, now);
+        osc.frequency.linearRampToValueAtTime(440, now + 0.25);
+        gain.gain.setValueAtTime(0.18, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.28);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start(now);
+        osc.stop(now + 0.28);
       } else if (type === 'win') {
         [523.25, 659.25, 783.99, 1046.50].forEach((freq, idx) => {
           const osc = audioCtx.createOscillator();
@@ -1397,6 +1433,14 @@
     let blockR = 1, blockC = 1, blockOrient = 0, moves = 0, gameState = "PLAYING", isRolling = false;
     let currentGrid = [];
 
+    // Quản lý trạng thái tương tác Cơ chế Cơ khí: Cầu Nối và Công Tắc
+    let stageBridges = {};       // Cấu hình cầu từ JSON: { "b1": { cells: [...], initial_open: false } }
+    let bridgeStates = {};       // Trạng thái đóng/mở hiện tại: { "b1": true/false }
+    let bridgeCellToId = {};     // Ánh xạ tọa độ "r,c" sang bridgeId
+    let bridgeMeshGroups = {};   // Ánh xạ bridgeId sang danh sách Group 3D của các ô cầu
+    let switchMap = {};          // Ánh xạ tọa độ "r,c" sang dữ liệu công tắc { type, behavior, linked_bridges }
+    let switchMeshes = {};       // Ánh xạ tọa độ "r,c" sang mesh cụm nút bấm để làm animation thụt nút
+
     /* =========================================================================
        6. XÂY DỰNG LẠI BÀN CỜ 3D TỰ ĐỘNG THEO DỮ LIỆU JSON (DYNAMIC REBUILD)
        ========================================================================= */
@@ -1407,6 +1451,39 @@
       // Xóa các mesh ô sàn cũ
       while (boardGroup.children.length > 0) {
         boardGroup.remove(boardGroup.children[0]);
+      }
+
+      // Khởi tạo và thiết lập lại bản đồ cầu nối và công tắc
+      stageBridges = data.bridges || {};
+      bridgeStates = {};
+      bridgeCellToId = {};
+      bridgeMeshGroups = {};
+      switchMap = {};
+      switchMeshes = {};
+
+      if (data.bridges) {
+        for (const [bId, bInfo] of Object.entries(data.bridges)) {
+          bridgeStates[bId] = (bInfo.initial_open === true);
+          bridgeMeshGroups[bId] = [];
+          if (Array.isArray(bInfo.cells)) {
+            bInfo.cells.forEach(([br, bc]) => {
+              bridgeCellToId[`${br},${bc}`] = bId;
+            });
+          }
+        }
+      }
+
+      if (Array.isArray(data.switches)) {
+        data.switches.forEach(sw => {
+          if (sw.pos && sw.pos.length === 2) {
+            const key = `${sw.pos[0]},${sw.pos[1]}`;
+            switchMap[key] = {
+              type: sw.type,
+              behavior: sw.behavior || 'toggle',
+              linked_bridges: sw.linked_bridges || []
+            };
+          }
+        });
       }
 
       const rows = currentGrid.length;
@@ -1440,26 +1517,40 @@
           }
           else if (type === 3) {
             // 3. CẦU NỐI KIM LOẠI (BRIDGE) - Nan kim loại, 2 gờ ray LED cyan hai bên
+            const bId = bridgeCellToId[`${r},${c}`];
+            const brGroup = new THREE.Group();
+
             const brMesh = new THREE.Mesh(
               new THREE.BoxGeometry(TILE_SCALE * 0.94, 0.26, TILE_SCALE * 0.94),
               [bridgeSideMat, bridgeSideMat, bridgeMat, bridgeSideMat, bridgeSideMat, bridgeSideMat]
             );
-            brMesh.position.set(x, -0.13, z);
+            brMesh.position.set(0, 0, 0);
             brMesh.receiveShadow = true;
-            boardGroup.add(brMesh);
+            brGroup.add(brMesh);
 
             // Hai dải gờ ray phát sáng hai bên hông cầu
             const railGeo = new THREE.BoxGeometry(0.08, 0.16, TILE_SCALE * 0.94);
             const railMat = new THREE.MeshStandardMaterial({ color: 0x00f2fe, emissive: 0x00f2fe, emissiveIntensity: 0.8 });
             const railLeft = new THREE.Mesh(railGeo, railMat);
-            railLeft.position.set(x - (TILE_SCALE * 0.44), 0.04, z);
+            railLeft.position.set(-(TILE_SCALE * 0.44), 0.17, 0);
             const railRight = new THREE.Mesh(railGeo, railMat);
-            railRight.position.set(x + (TILE_SCALE * 0.44), 0.04, z);
-            boardGroup.add(railLeft);
-            boardGroup.add(railRight);
+            railRight.position.set((TILE_SCALE * 0.44), 0.17, 0);
+            brGroup.add(railLeft);
+            brGroup.add(railRight);
+
+            const isOpen = bId ? (bridgeStates[bId] === true) : true;
+            brGroup.userData = { baseY: -0.13, r: r, c: c, bridgeId: bId };
+            brGroup.position.set(x, isOpen ? -0.13 : -15, z);
+            brGroup.visible = isOpen;
+
+            boardGroup.add(brGroup);
+            if (bId) {
+              if (!bridgeMeshGroups[bId]) bridgeMeshGroups[bId] = [];
+              bridgeMeshGroups[bId].push(brGroup);
+            }
           }
           else if (type === 4) {
-            // 4. CÔNG TẮC MỀM (SOFT SWITCH) - Đế kim loại tròn, nút bấm tròn vàng hổ phách
+            // 4. CÔNG TẮC MỀM (SOFT SWITCH) - Đế kim loại tròn, nút bấm tròn vàng hổ phách có thể thụt xuống
             const baseMesh = new THREE.Mesh(
               new THREE.BoxGeometry(TILE_SCALE * 0.96, 0.35, TILE_SCALE * 0.96),
               [sideMat, sideMat, tileMat, sideMat, sideMat, sideMat]
@@ -1472,17 +1563,29 @@
             ringPlate.position.set(x, 0.03, z);
             boardGroup.add(ringPlate);
 
+            // Cụm nút bấm tròn có animation ấn nảy cơ học
+            const swBtnGroup = new THREE.Group();
+            swBtnGroup.position.set(x, 0, z);
+
             const swBtn = new THREE.Mesh(new THREE.CylinderGeometry(0.42, 0.45, 0.14, 24), softSwitchMat);
-            swBtn.position.set(x, 0.10, z);
+            swBtn.position.set(0, 0.10, 0);
             swBtn.castShadow = true;
-            boardGroup.add(swBtn);
+            swBtnGroup.add(swBtn);
 
             const swPip = new THREE.Mesh(new THREE.SphereGeometry(0.12, 16, 12), new THREE.MeshBasicMaterial({ color: 0xfffbeb }));
-            swPip.position.set(x, 0.17, z);
-            boardGroup.add(swPip);
+            swPip.position.set(0, 0.17, 0);
+            swBtnGroup.add(swPip);
+
+            boardGroup.add(swBtnGroup);
+            switchMeshes[`${r},${c}`] = {
+              type: 'SOFT_SWITCH',
+              group: swBtnGroup,
+              baseY: 0,
+              pressedY: -0.07
+            };
           }
           else if (type === 5) {
-            // 5. CÔNG TẮC NẶNG (HEAVY SWITCH) - Đế thép có 4 ốc vít, dấu X đỏ ruby nổi khối
+            // 5. CÔNG TẮC NẶNG (HEAVY SWITCH) - Đế thép có 4 ốc vít, dấu X đỏ ruby nổi khối có thể thụt xuống
             const baseMesh = new THREE.Mesh(
               new THREE.BoxGeometry(TILE_SCALE * 0.96, 0.35, TILE_SCALE * 0.96),
               [sideMat, sideMat, tileMat, sideMat, sideMat, sideMat]
@@ -1503,19 +1606,31 @@
               boardGroup.add(bolt);
             });
 
+            // Cụm dấu X đỏ ruby có animation ấn nảy cơ học
+            const heavyGroup = new THREE.Group();
+            heavyGroup.position.set(x, 0, z);
+
             const beamGeo = new THREE.BoxGeometry(0.96, 0.15, 0.26);
             const beam1 = new THREE.Mesh(beamGeo, heavySwitchMat);
-            beam1.position.set(x, 0.11, z);
+            beam1.position.set(0, 0.11, 0);
             beam1.rotation.y = Math.PI / 4;
             beam1.castShadow = true;
 
             const beam2 = new THREE.Mesh(beamGeo, heavySwitchMat);
-            beam2.position.set(x, 0.11, z);
+            beam2.position.set(0, 0.11, 0);
             beam2.rotation.y = -Math.PI / 4;
             beam2.castShadow = true;
 
-            boardGroup.add(beam1);
-            boardGroup.add(beam2);
+            heavyGroup.add(beam1);
+            heavyGroup.add(beam2);
+            boardGroup.add(heavyGroup);
+
+            switchMeshes[`${r},${c}`] = {
+              type: 'HEAVY_SWITCH',
+              group: heavyGroup,
+              baseY: 0,
+              pressedY: -0.06
+            };
           }
           else if (type === 6) {
             // 6. CÔNG TẮC TÁCH KHỐI (SPLIT SWITCH) - Vòng ma thuật tím & Tinh thể bát diện lơ lửng
@@ -1667,8 +1782,22 @@
           const cx = startX + c * cellSize;
           const cy = startY + r * cellSize;
 
-          ctx.fillStyle = tileColors[type] || '#334155';
-          ctx.strokeStyle = 'rgba(255, 255, 255, 0.12)';
+          let cellFill = tileColors[type] || '#334155';
+          let cellStroke = 'rgba(255, 255, 255, 0.12)';
+          if (type === 3) {
+            const bId = bridgeCellToId[`${r},${c}`];
+            const isOpen = bId ? (bridgeStates[bId] === true) : true;
+            if (isOpen) {
+              cellFill = '#0284c7';
+              cellStroke = '#38bdf8';
+            } else {
+              cellFill = '#08111d';
+              cellStroke = 'rgba(56, 189, 248, 0.28)';
+            }
+          }
+
+          ctx.fillStyle = cellFill;
+          ctx.strokeStyle = cellStroke;
           ctx.lineWidth = 1;
           ctx.beginPath();
           if (ctx.roundRect) ctx.roundRect(cx + 1, cy + 1, cellSize - 2, cellSize - 2, 2);
@@ -1738,7 +1867,141 @@
       isRolling = false;
       document.getElementById('ui-status').className = 'status-badge status-playing';
       document.getElementById('ui-status').textContent = 'PLAYING';
+
+      // Khôi phục trạng thái ban đầu của các cây cầu
+      if (currentStageData.bridges) {
+        for (const [bId, bInfo] of Object.entries(currentStageData.bridges)) {
+          const initOpen = (bInfo.initial_open === true);
+          bridgeStates[bId] = initOpen;
+          const groups = bridgeMeshGroups[bId] || [];
+          groups.forEach(grp => {
+            grp.visible = initOpen;
+            grp.position.y = initOpen ? (grp.userData.baseY || -0.13) : -15;
+          });
+        }
+      }
+
+      // Khôi phục vị trí của các cụm công tắc
+      Object.values(switchMeshes).forEach(swObj => {
+        if (swObj && swObj.group) {
+          swObj.group.position.y = swObj.baseY;
+        }
+      });
+
       syncBlockTransform();
+    }
+
+    function triggerSwitches(occupied, orient) {
+      let triggeredAny = false;
+      for (const [r, c] of occupied) {
+        const key = `${r},${c}`;
+        const sw = switchMap[key];
+        if (!sw) continue;
+
+        let canTrigger = false;
+        if (sw.type === 'SOFT_SWITCH' || sw.type === 4) {
+          canTrigger = true; // Kích hoạt ở mọi tư thế (đứng hoặc nằm)
+        } else if (sw.type === 'HEAVY_SWITCH' || sw.type === 5) {
+          canTrigger = (orient === 0); // Chỉ kích hoạt khi khối ĐỨNG thẳng (1x1)
+        }
+
+        if (canTrigger) {
+          triggeredAny = true;
+          depressSwitch(key);
+
+          if (sw.type === 'HEAVY_SWITCH' || sw.type === 5) {
+            playAudio('switch_heavy');
+          } else {
+            playAudio('switch_soft');
+          }
+
+          (sw.linked_bridges || []).forEach(bId => {
+            if (bridgeStates[bId] !== undefined) {
+              let newState = bridgeStates[bId];
+              if (sw.behavior === 'toggle') newState = !bridgeStates[bId];
+              else if (sw.behavior === 'perm_open') newState = true;
+              else if (sw.behavior === 'perm_close') newState = false;
+
+              if (newState !== bridgeStates[bId]) {
+                setBridgeState(bId, newState);
+              }
+            }
+          });
+        }
+      }
+      if (triggeredAny) {
+        drawRadar();
+      }
+    }
+
+    function depressSwitch(key) {
+      const swObj = switchMeshes[key];
+      if (!swObj || !swObj.group) return;
+      const grp = swObj.group;
+      const targetY = swObj.pressedY;
+      const startY = grp.position.y;
+      const startTime = performance.now();
+      const dur = 120;
+
+      function animDown(now) {
+        const p = Math.min((now - startTime) / dur, 1.0);
+        grp.position.y = startY + (targetY - startY) * p;
+        if (p < 1.0) {
+          requestAnimationFrame(animDown);
+        } else {
+          setTimeout(() => {
+            const upStart = performance.now();
+            function animUp(t) {
+              const upP = Math.min((t - upStart) / 100, 1.0);
+              grp.position.y = targetY + (swObj.baseY - targetY) * upP;
+              if (upP < 1.0) requestAnimationFrame(animUp);
+            }
+            requestAnimationFrame(animUp);
+          }, 60);
+        }
+      }
+      requestAnimationFrame(animDown);
+    }
+
+    function setBridgeState(bId, open) {
+      bridgeStates[bId] = open;
+      playAudio('bridge');
+      const groups = bridgeMeshGroups[bId] || [];
+
+      groups.forEach(grp => {
+        if (open) {
+          grp.visible = true;
+          const targetY = grp.userData.baseY || -0.13;
+          const startY = grp.position.y < -5 ? -4 : grp.position.y;
+          grp.position.y = startY;
+          const startTime = performance.now();
+          const dur = 280;
+
+          function rise(t) {
+            const p = Math.min((t - startTime) / dur, 1.0);
+            const ease = 1 - Math.pow(1 - p, 3);
+            grp.position.y = startY + (targetY - startY) * ease;
+            if (p < 1.0) requestAnimationFrame(rise);
+          }
+          requestAnimationFrame(rise);
+        } else {
+          const startY = grp.position.y;
+          const targetY = -6;
+          const startTime = performance.now();
+          const dur = 260;
+
+          function sink(t) {
+            const p = Math.min((t - startTime) / dur, 1.0);
+            grp.position.y = startY + (targetY - startY) * p;
+            if (p < 1.0) {
+              requestAnimationFrame(sink);
+            } else {
+              grp.visible = false;
+            }
+          }
+          requestAnimationFrame(sink);
+        }
+      });
     }
 
     function syncBlockTransform() {
@@ -1758,26 +2021,46 @@
       const orientNames = ["Standing (1 × 1)", "Lying Horizontal (2 × 1)", "Lying Vertical (1 × 2)"];
       document.getElementById('ui-orient').textContent = orientNames[blockOrient];
 
-      // Cập nhật ô đang đứng
-      const tileNames = {
-        0: "Khoảng Trống [0]",
-        1: "Sàn Chuẩn [1]",
-        2: "Gạch Vỡ (Nguy Hiểm) [2] ⚠️",
-        3: "Cầu Nối Nan Thép [3]",
-        4: "Công Tắc Tròn [4]",
-        5: "Công Tắc Chữ X [5]",
-        6: "Tách Khối [6]",
-        7: "Ô Dịch Chuyển [7]",
-        9: "Ô Đích [9] 🎯"
-      };
+      // Cập nhật ô đang đứng với trạng thái chi tiết của công tắc và cầu
       let curType = 1;
       if (currentGrid && currentGrid[blockR] && currentGrid[blockR][blockC] !== undefined) {
         curType = currentGrid[blockR][blockC];
       }
       const curTileEl = document.getElementById('ui-current-tile');
       if (curTileEl) {
-        curTileEl.textContent = tileNames[curType] || `Ô [${curType}]`;
-        curTileEl.style.color = curType === 2 ? '#f87171' : (curType === 9 ? '#fbbf24' : '#38bdf8');
+        if (curType === 0) {
+          curTileEl.textContent = "Khoảng Trống [0] ⚠️";
+          curTileEl.style.color = '#ef4444';
+        } else if (curType === 1) {
+          curTileEl.textContent = "Sàn Chuẩn [1]";
+          curTileEl.style.color = '#38bdf8';
+        } else if (curType === 2) {
+          curTileEl.textContent = "Gạch Vỡ (Nguy Hiểm) [2] ⚠️";
+          curTileEl.style.color = '#f87171';
+        } else if (curType === 3) {
+          const bId = bridgeCellToId[`${blockR},${blockC}`];
+          const isOpen = bId ? (bridgeStates[bId] === true) : true;
+          curTileEl.textContent = isOpen ? "Cầu Nối Nan Thép [3] (Đang Mở)" : "Cầu Đang Đóng [3] ⚠️";
+          curTileEl.style.color = isOpen ? '#38bdf8' : '#f87171';
+        } else if (curType === 4) {
+          curTileEl.textContent = "Công Tắc Mềm [4] (Mọi tư thế)";
+          curTileEl.style.color = '#facc15';
+        } else if (curType === 5) {
+          curTileEl.textContent = "Công Tắc Nặng [5] (Chỉ kích hoạt khi ĐỨNG 1×1)";
+          curTileEl.style.color = '#f43f5e';
+        } else if (curType === 6) {
+          curTileEl.textContent = "Tách Khối [6]";
+          curTileEl.style.color = '#c084fc';
+        } else if (curType === 7) {
+          curTileEl.textContent = "Ô Dịch Chuyển [7]";
+          curTileEl.style.color = '#34d399';
+        } else if (curType === 9) {
+          curTileEl.textContent = "Ô Đích [9] 🎯";
+          curTileEl.style.color = '#fbbf24';
+        } else {
+          curTileEl.textContent = `Ô [${curType}]`;
+          curTileEl.style.color = '#94a3b8';
+        }
       }
 
       updateOrientIcon(blockOrient);
@@ -1848,11 +2131,16 @@
       else if (blockOrient === 2) { occupied.push([blockR, blockC]); occupied.push([blockR + 1, blockC]); }
 
       const rows = currentGrid.length, cols = currentGrid[0].length;
-      let valid = true, isFragileFall = false;
+      let valid = true, isFragileFall = false, isBridgeFall = false;
 
       for (const [r, c] of occupied) {
         if (r < 0 || r >= rows || c < 0 || c >= cols || currentGrid[r][c] === 0) {
           valid = false; break;
+        }
+        // Kiểm tra cầu nối: nếu ô này thuộc cầu và cầu đang đóng thì rơi vực
+        const bId = bridgeCellToId[`${r},${c}`];
+        if (bId && !bridgeStates[bId]) {
+          valid = false; isBridgeFall = true; break;
         }
         if (blockOrient === 0 && currentGrid[r][c] === 2) {
           valid = false; isFragileFall = true; break; // Đứng thẳng trên gạch vỡ
@@ -1863,7 +2151,7 @@
         gameState = "FELL";
         playAudio('fall');
         document.getElementById('ui-status').className = 'status-badge status-fell';
-        document.getElementById('ui-status').textContent = isFragileFall ? 'BROKEN TILE' : 'FELL OFF';
+        document.getElementById('ui-status').textContent = isFragileFall ? 'BROKEN TILE' : (isBridgeFall ? 'BRIDGE CLOSED' : 'FELL OFF');
         let fallY = 0;
         function drop() {
           fallY -= 0.6; blockMaster.position.y = fallY;
@@ -1874,7 +2162,33 @@
         return;
       }
 
-      // Kiểm tra ô đích
+      // Khối tiếp đất an toàn: Kích hoạt công tắc mềm (4) hoặc công tắc nặng (5)
+      triggerSwitches(occupied, blockOrient);
+
+      // Kiểm tra lại nếu hành động kích hoạt công tắc làm sập cây cầu bên dưới chân khối
+      let fellAfterSwitch = false;
+      for (const [r, c] of occupied) {
+        const bId = bridgeCellToId[`${r},${c}`];
+        if (bId && !bridgeStates[bId]) {
+          fellAfterSwitch = true; break;
+        }
+      }
+      if (fellAfterSwitch) {
+        gameState = "FELL";
+        playAudio('fall');
+        document.getElementById('ui-status').className = 'status-badge status-fell';
+        document.getElementById('ui-status').textContent = 'BRIDGE COLLAPSED';
+        let fallY = 0;
+        function drop() {
+          fallY -= 0.6; blockMaster.position.y = fallY;
+          if (fallY > -15) requestAnimationFrame(drop);
+          else setTimeout(resetStage, 600);
+        }
+        drop();
+        return;
+      }
+
+      // Kiểm tra ô đích: Chỉ chiến thắng khi khối ĐỨNG THẲNG (1x1) trên ô số 9
       if (blockOrient === 0 && currentGrid[blockR][blockC] === 9) {
         gameState = "WON";
         playAudio('win');
