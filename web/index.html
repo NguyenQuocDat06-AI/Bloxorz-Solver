@@ -2462,7 +2462,7 @@
       else if (blockOrient === 3) { occupied.push([blockR, blockC]); occupied.push([blockR2, blockC2]); }
 
       const rows = currentGrid.length, cols = currentGrid[0].length;
-      let valid = true, isFragileFall = false, isBridgeFall = false, isGoalPitFall = false;
+      let valid = true, isFragileFall = false, isBridgeFall = false;
 
       for (const [r, c] of occupied) {
         if (r < 0 || r >= rows || c < 0 || c >= cols || currentGrid[r][c] === 0) {
@@ -2480,17 +2480,13 @@
         if (blockOrient === 3 && currentGrid[r][c] === 2) {
           valid = false; isFragileFall = true; break;
         }
-        // Khối đơn 1x1x1 rơi xuống hố đích (chỉ khối 1x1x2 đứng thẳng mới chiến thắng)
-        if (blockOrient === 3 && currentGrid[r][c] === 9) {
-          valid = false; isGoalPitFall = true; break;
-        }
       }
 
       if (!valid) {
         gameState = "FELL";
         playAudio('fall');
         document.getElementById('ui-status').className = 'status-badge status-fell';
-        document.getElementById('ui-status').textContent = isFragileFall ? 'BROKEN TILE' : (isBridgeFall ? 'BRIDGE CLOSED' : (isGoalPitFall ? 'FELL IN HOLE' : 'FELL OFF'));
+        document.getElementById('ui-status').textContent = isFragileFall ? 'BROKEN TILE' : (isBridgeFall ? 'BRIDGE CLOSED' : 'FELL OFF');
         let fallY = 0;
         function drop() {
           fallY -= 0.6;
