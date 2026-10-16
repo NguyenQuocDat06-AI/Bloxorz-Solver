@@ -72,7 +72,7 @@ class Board:
         self.bridge_cell_map: Dict[Tuple[int, int], str] = {}
         for b_id, bridge in self.bridges.items():
             for cell in bridge.cells:
-                self.bridge_cell_map[cell] = b_id
+                self.bridge_cell_map[tuple(cell)] = b_id
 
     @classmethod
     def from_json(cls, file_path: str) -> "Board":
