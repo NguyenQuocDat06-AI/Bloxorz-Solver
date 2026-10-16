@@ -662,6 +662,108 @@
       font-family: 'JetBrains Mono', monospace;
       font-size: 11px;
     }
+
+    /* Bảng Chú Giải Các Khối Ô (1 - 9) */
+    .legend-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 7px;
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 6px 10px;
+      border-radius: 10px;
+      background: rgba(255, 255, 255, 0.025);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      transition: all 0.2s;
+    }
+
+    .legend-item:hover {
+      background: rgba(255, 255, 255, 0.06);
+      transform: translateX(2px);
+    }
+
+    .legend-swatch {
+      width: 26px;
+      height: 26px;
+      border-radius: 7px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'JetBrains Mono', monospace;
+      font-weight: 800;
+      font-size: 11.5px;
+      flex-shrink: 0;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.5);
+    }
+
+    .swatch-floor {
+      background: linear-gradient(135deg, #334155, #1e293b);
+      color: #38bdf8;
+      border: 1px solid rgba(56, 189, 248, 0.5);
+    }
+
+    .swatch-fragile {
+      background: linear-gradient(135deg, #ea580c, #9a3412);
+      color: #ffedd5;
+      border: 1px solid #f97316;
+      box-shadow: 0 0 10px rgba(249, 115, 22, 0.4);
+    }
+
+    .swatch-bridge {
+      background: linear-gradient(135deg, #0284c7, #0369a1);
+      color: #e0f2fe;
+      border: 1px solid #00f2fe;
+      box-shadow: 0 0 10px rgba(0, 242, 254, 0.4);
+    }
+
+    .swatch-soft {
+      background: radial-gradient(circle, #fde047 30%, #ca8a04 100%);
+      color: #171717;
+      border: 1px solid #facc15;
+      box-shadow: 0 0 10px rgba(250, 204, 21, 0.45);
+    }
+
+    .swatch-heavy {
+      background: linear-gradient(135deg, #f43f5e, #be123c);
+      color: #fff;
+      border: 1px solid #fb7185;
+      box-shadow: 0 0 10px rgba(244, 63, 94, 0.45);
+    }
+
+    .swatch-split {
+      background: linear-gradient(135deg, #a855f7, #6b21a8);
+      color: #f3e8ff;
+      border: 1px solid #c084fc;
+      box-shadow: 0 0 10px rgba(168, 85, 247, 0.45);
+    }
+
+    .swatch-goal {
+      background: radial-gradient(circle, #020617 40%, #d97706 100%);
+      color: #fbbf24;
+      border: 1.5px solid #f59e0b;
+      box-shadow: 0 0 12px rgba(245, 158, 11, 0.6);
+    }
+
+    .legend-text {
+      display: flex;
+      flex-direction: column;
+      gap: 1px;
+    }
+
+    .legend-title {
+      font-size: 11.5px;
+      font-weight: 700;
+      color: #f1f5f9;
+    }
+
+    .legend-desc {
+      font-size: 10px;
+      color: var(--text-sub);
+    }
   </style>
 </head>
 
@@ -815,6 +917,62 @@
       </div>
     </div>
 
+    <!-- Thẻ Chú Giải Các Khối Ô (1 - 9) -->
+    <div class="card">
+      <div class="card-head"><span>CHÚ GIẢI CÁC KHỐI Ô</span></div>
+      <div class="legend-grid">
+        <div class="legend-item">
+          <div class="legend-swatch swatch-floor">1</div>
+          <div class="legend-text">
+            <span class="legend-title">Sàn Chuẩn</span>
+            <span class="legend-desc">Chịu lực ở mọi tư thế</span>
+          </div>
+        </div>
+        <div class="legend-item">
+          <div class="legend-swatch swatch-fragile">2</div>
+          <div class="legend-text">
+            <span class="legend-title">Gạch Vỡ (Cam nứt)</span>
+            <span class="legend-desc">Chỉ được nằm, đứng sẽ sập</span>
+          </div>
+        </div>
+        <div class="legend-item">
+          <div class="legend-swatch swatch-bridge">3</div>
+          <div class="legend-text">
+            <span class="legend-title">Cầu Nối (Nan kim loại)</span>
+            <span class="legend-desc">Đóng/mở theo công tắc</span>
+          </div>
+        </div>
+        <div class="legend-item">
+          <div class="legend-swatch swatch-soft">4</div>
+          <div class="legend-text">
+            <span class="legend-title">Công Tắc Tròn (Vàng)</span>
+            <span class="legend-desc">Chạm vào ở mọi tư thế</span>
+          </div>
+        </div>
+        <div class="legend-item">
+          <div class="legend-swatch swatch-heavy">5</div>
+          <div class="legend-text">
+            <span class="legend-title">Công Tắc Chữ X (Đỏ)</span>
+            <span class="legend-desc">Phải ĐỨNG mới kích hoạt</span>
+          </div>
+        </div>
+        <div class="legend-item">
+          <div class="legend-swatch swatch-split">6</div>
+          <div class="legend-text">
+            <span class="legend-title">Tách Khối (Pha lê tím)</span>
+            <span class="legend-desc">Phải ĐỨNG, tách 2 khối 1×1</span>
+          </div>
+        </div>
+        <div class="legend-item">
+          <div class="legend-swatch swatch-goal">9</div>
+          <div class="legend-text">
+            <span class="legend-title">Ô Đích (Hố Đen Vàng)</span>
+            <span class="legend-desc">ĐỨNG lọt hố để chiến thắng</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- Nút Đặt Lại -->
     <div class="card" style="margin-top: auto;">
       <button class="btn-action-ghost" onclick="resetStage()"><span>🔄</span> Đặt Lại Màn (Phím: R)</button>
@@ -910,20 +1068,102 @@
     /* =========================================================================
        4. TỰ SINH CHẤT LIỆU TEXTURE CHO BÀN CỜ VÀ KHỐI HỘP
        ========================================================================= */
+    // 1. Texture Sàn Chuẩn (Hi-tech Slate Grid)
     function makeTileTexture() {
       const c = document.createElement('canvas'); c.width = 512; c.height = 512;
       const ctx = c.getContext('2d');
       const grad = ctx.createLinearGradient(0, 0, 512, 512);
-      grad.addColorStop(0, '#2a374d'); grad.addColorStop(1, '#151d2d');
+      grad.addColorStop(0, '#243044'); grad.addColorStop(1, '#111827');
       ctx.fillStyle = grad; ctx.fillRect(0, 0, 512, 512);
       for (let i = 0; i < 9000; i++) {
-        ctx.fillStyle = Math.random() > 0.5 ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.1)';
+        ctx.fillStyle = Math.random() > 0.5 ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.12)';
         ctx.fillRect(Math.random() * 512, Math.random() * 512, 2, 2);
       }
       ctx.strokeStyle = 'rgba(56, 189, 248, 0.45)'; ctx.lineWidth = 6; ctx.strokeRect(6, 6, 500, 500);
       return new THREE.CanvasTexture(c);
     }
 
+    // 2. Texture Gạch Vỡ Màu Cam (Cracked Orange Fragile Tile)
+    function makeFragileTexture() {
+      const c = document.createElement('canvas'); c.width = 512; c.height = 512;
+      const ctx = c.getContext('2d');
+      const grad = ctx.createLinearGradient(0, 0, 512, 512);
+      grad.addColorStop(0, '#c2410c');
+      grad.addColorStop(0.5, '#ea580c');
+      grad.addColorStop(1, '#9a3412');
+      ctx.fillStyle = grad; ctx.fillRect(0, 0, 512, 512);
+
+      for (let i = 0; i < 7000; i++) {
+        ctx.fillStyle = Math.random() > 0.5 ? 'rgba(255, 237, 213, 0.08)' : 'rgba(40, 10, 0, 0.2)';
+        ctx.fillRect(Math.random() * 512, Math.random() * 512, 2, 2);
+      }
+
+      const cracks = [
+        [[60, 50], [130, 140], [220, 180], [330, 190], [460, 180]],
+        [[220, 180], [250, 280], [290, 370], [320, 460]],
+        [[130, 140], [110, 260], [80, 360], [50, 440]],
+        [[330, 190], [390, 280], [460, 350]],
+        [[250, 280], [190, 350], [190, 450]],
+        [[220, 180], [160, 220], [140, 260]]
+      ];
+
+      ctx.lineWidth = 5;
+      ctx.strokeStyle = '#290c00';
+      ctx.lineCap = 'round';
+      ctx.lineJoin = 'round';
+      cracks.forEach(pts => {
+        ctx.beginPath();
+        ctx.moveTo(pts[0][0], pts[0][1]);
+        for (let k = 1; k < pts.length; k++) ctx.lineTo(pts[k][0], pts[k][1]);
+        ctx.stroke();
+      });
+
+      ctx.lineWidth = 2;
+      ctx.strokeStyle = '#fed7aa';
+      cracks.forEach(pts => {
+        ctx.beginPath();
+        ctx.moveTo(pts[0][0], pts[0][1]);
+        for (let k = 1; k < pts.length; k++) ctx.lineTo(pts[k][0], pts[k][1]);
+        ctx.stroke();
+      });
+
+      ctx.strokeStyle = 'rgba(251, 146, 60, 0.85)';
+      ctx.lineWidth = 8;
+      ctx.strokeRect(6, 6, 500, 500);
+      return new THREE.CanvasTexture(c);
+    }
+
+    // 3. Texture Cầu Nối Kim Loại (Industrial Steel Grating)
+    function makeBridgeTexture() {
+      const c = document.createElement('canvas'); c.width = 512; c.height = 512;
+      const ctx = c.getContext('2d');
+      ctx.fillStyle = '#0b1329';
+      ctx.fillRect(0, 0, 512, 512);
+
+      for (let y = 18; y < 500; y += 34) {
+        const slatGrad = ctx.createLinearGradient(0, y, 0, y + 24);
+        slatGrad.addColorStop(0, '#334155');
+        slatGrad.addColorStop(0.5, '#64748b');
+        slatGrad.addColorStop(1, '#1e293b');
+        ctx.fillStyle = slatGrad;
+        ctx.fillRect(24, y, 464, 24);
+
+        ctx.fillStyle = '#cbd5e1';
+        ctx.beginPath(); ctx.arc(36, y + 12, 3.5, 0, Math.PI * 2); ctx.fill();
+        ctx.beginPath(); ctx.arc(476, y + 12, 3.5, 0, Math.PI * 2); ctx.fill();
+      }
+
+      ctx.fillStyle = '#00f2fe';
+      ctx.fillRect(10, 10, 8, 492);
+      ctx.fillRect(494, 10, 8, 492);
+
+      ctx.strokeStyle = 'rgba(0, 242, 254, 0.8)';
+      ctx.lineWidth = 6;
+      ctx.strokeRect(4, 4, 504, 504);
+      return new THREE.CanvasTexture(c);
+    }
+
+    // Texture Khối Hộp Bloxorz Gỗ Cam Cổ Điển
     function makeBlockTexture() {
       const c = document.createElement('canvas'); c.width = 512; c.height = 512;
       const ctx = c.getContext('2d');
@@ -974,11 +1214,23 @@
     const gridHelper = new THREE.GridHelper(80, 40, 0x00f2fe, 0x1e293b);
     gridHelper.position.y = -8; scene.add(gridHelper);
 
-    // Vật liệu ô sàn
-    const tileMat = new THREE.MeshStandardMaterial({ map: makeTileTexture(), roughness: 0.25 });
-    const fragileMat = new THREE.MeshStandardMaterial({ color: 0xf97316, roughness: 0.4, emissive: 0x7c2d12, emissiveIntensity: 0.3 });
-    const bridgeMat = new THREE.MeshStandardMaterial({ color: 0x00f2fe, roughness: 0.3, emissive: 0x0077aa, emissiveIntensity: 0.4 });
+    // Vật liệu ô sàn đa dạng chuẩn nhận diện Bloxorz
+    const tileMat = new THREE.MeshStandardMaterial({ map: makeTileTexture(), roughness: 0.25, metalness: 0.1 });
+    const fragileMat = new THREE.MeshStandardMaterial({ map: makeFragileTexture(), roughness: 0.55, emissive: 0x9a3412, emissiveIntensity: 0.2 });
+    const bridgeMat = new THREE.MeshStandardMaterial({ map: makeBridgeTexture(), roughness: 0.25, metalness: 0.7, emissive: 0x00f2fe, emissiveIntensity: 0.2 });
     const sideMat = new THREE.MeshStandardMaterial({ color: 0x182234 });
+    const fragileSideMat = new THREE.MeshStandardMaterial({ color: 0x431407 });
+    const bridgeSideMat = new THREE.MeshStandardMaterial({ color: 0x0f172a });
+
+    // Vật liệu công tắc & chi tiết cơ khí
+    const metalDarkMat = new THREE.MeshStandardMaterial({ color: 0x1e293b, roughness: 0.35, metalness: 0.8 });
+    const boltMat = new THREE.MeshStandardMaterial({ color: 0x94a3b8, roughness: 0.2, metalness: 0.9 });
+    const softSwitchMat = new THREE.MeshStandardMaterial({ color: 0xfacc15, emissive: 0xca8a04, emissiveIntensity: 0.6, roughness: 0.2, metalness: 0.5 });
+    const heavySwitchMat = new THREE.MeshStandardMaterial({ color: 0xf43f5e, emissive: 0xbe123c, emissiveIntensity: 0.7, roughness: 0.25, metalness: 0.4 });
+    const splitSwitchMat = new THREE.MeshStandardMaterial({ color: 0xc084fc, emissive: 0x7e22ce, emissiveIntensity: 0.85, roughness: 0.1, metalness: 0.7 });
+    const goalFrameMat = new THREE.MeshStandardMaterial({ color: 0xd97706, emissive: 0xb45309, emissiveIntensity: 0.6, roughness: 0.3, metalness: 0.8 });
+    const goalHaloMat = new THREE.MeshStandardMaterial({ color: 0xfbbf24, emissive: 0xf59e0b, emissiveIntensity: 1.5, roughness: 0.2 });
+
     const boardGroup = new THREE.Group();
     scene.add(boardGroup);
 
@@ -1012,36 +1264,183 @@
       for (let r = 0; r < rows; r++) {
         for (let c = 0; c < cols; c++) {
           const type = currentGrid[r][c];
-          if (type === 0) continue; // Khoảng trống
+          if (type === 0) continue; // Khoảng trống / Vực thẳm
           const x = c * TILE_SCALE, z = r * TILE_SCALE;
 
-          if (type === 9) {
-            // Ô đích (Hố đen viền vàng phát quang)
-            const frame = new THREE.Mesh(new THREE.BoxGeometry(TILE_SCALE * 0.98, 0.24, TILE_SCALE * 0.98), new THREE.MeshStandardMaterial({ color: 0xffaa00, emissive: 0xff7700 }));
-            frame.position.set(x, -0.08, z); boardGroup.add(frame);
-            const pit = new THREE.Mesh(new THREE.BoxGeometry(TILE_SCALE * 0.82, 5.0, TILE_SCALE * 0.82), new THREE.MeshBasicMaterial({ color: 0x010204 }));
-            pit.position.set(x, -2.5, z); boardGroup.add(pit);
-          } else {
-            // Ô sàn chuẩn, gạch vỡ hoặc cầu nối
-            let mTop = tileMat;
-            if (type === 2) mTop = fragileMat;
-            else if (type === 3) mTop = bridgeMat;
-
-            const tMesh = new THREE.Mesh(new THREE.BoxGeometry(TILE_SCALE * 0.96, 0.35, TILE_SCALE * 0.96), [sideMat, sideMat, mTop, sideMat, sideMat, sideMat]);
-            tMesh.position.set(x, -0.175, z); tMesh.receiveShadow = true;
+          if (type === 1) {
+            // 1. SÀN CHUẨN (STANDARD FLOOR)
+            const tMesh = new THREE.Mesh(
+              new THREE.BoxGeometry(TILE_SCALE * 0.96, 0.35, TILE_SCALE * 0.96),
+              [sideMat, sideMat, tileMat, sideMat, sideMat, sideMat]
+            );
+            tMesh.position.set(x, -0.175, z);
+            tMesh.receiveShadow = true;
             boardGroup.add(tMesh);
+          }
+          else if (type === 2) {
+            // 2. GẠCH VỠ MÀU CAM (FRAGILE TILE) - Mỏng hơn, bề mặt nứt nẻ
+            const fragMesh = new THREE.Mesh(
+              new THREE.BoxGeometry(TILE_SCALE * 0.96, 0.20, TILE_SCALE * 0.96),
+              [fragileSideMat, fragileSideMat, fragileMat, fragileSideMat, fragileSideMat, fragileSideMat]
+            );
+            fragMesh.position.set(x, -0.10, z);
+            fragMesh.receiveShadow = true;
+            boardGroup.add(fragMesh);
+          }
+          else if (type === 3) {
+            // 3. CẦU NỐI KIM LOẠI (BRIDGE) - Nan kim loại, 2 gờ ray LED cyan hai bên
+            const brMesh = new THREE.Mesh(
+              new THREE.BoxGeometry(TILE_SCALE * 0.94, 0.26, TILE_SCALE * 0.94),
+              [bridgeSideMat, bridgeSideMat, bridgeMat, bridgeSideMat, bridgeSideMat, bridgeSideMat]
+            );
+            brMesh.position.set(x, -0.13, z);
+            brMesh.receiveShadow = true;
+            boardGroup.add(brMesh);
 
-            // Công tắc mềm (4) hoặc công tắc nặng (5) hoặc tách khối (6)
-            if (type === 4) {
-              const sw = new THREE.Mesh(new THREE.CylinderGeometry(0.4, 0.45, 0.15, 16), new THREE.MeshStandardMaterial({ color: 0xfacc15, emissive: 0xca8a04 }));
-              sw.position.set(x, 0.08, z); boardGroup.add(sw);
-            } else if (type === 5) {
-              const sw = new THREE.Mesh(new THREE.BoxGeometry(0.7, 0.15, 0.7), new THREE.MeshStandardMaterial({ color: 0xf43f5e, emissive: 0xbe123c }));
-              sw.position.set(x, 0.08, z); sw.rotation.y = Math.PI / 4; boardGroup.add(sw);
-            } else if (type === 6) {
-              const sw = new THREE.Mesh(new THREE.OctahedronGeometry(0.35), new THREE.MeshStandardMaterial({ color: 0xa855f7, emissive: 0x7e22ce }));
-              sw.position.set(x, 0.25, z); boardGroup.add(sw);
-            }
+            // Hai dải gờ ray phát sáng hai bên hông cầu
+            const railGeo = new THREE.BoxGeometry(0.08, 0.16, TILE_SCALE * 0.94);
+            const railMat = new THREE.MeshStandardMaterial({ color: 0x00f2fe, emissive: 0x00f2fe, emissiveIntensity: 0.8 });
+            const railLeft = new THREE.Mesh(railGeo, railMat);
+            railLeft.position.set(x - (TILE_SCALE * 0.44), 0.04, z);
+            const railRight = new THREE.Mesh(railGeo, railMat);
+            railRight.position.set(x + (TILE_SCALE * 0.44), 0.04, z);
+            boardGroup.add(railLeft);
+            boardGroup.add(railRight);
+          }
+          else if (type === 4) {
+            // 4. CÔNG TẮC MỀM (SOFT SWITCH) - Đế kim loại tròn, nút bấm tròn vàng hổ phách
+            const baseMesh = new THREE.Mesh(
+              new THREE.BoxGeometry(TILE_SCALE * 0.96, 0.35, TILE_SCALE * 0.96),
+              [sideMat, sideMat, tileMat, sideMat, sideMat, sideMat]
+            );
+            baseMesh.position.set(x, -0.175, z);
+            baseMesh.receiveShadow = true;
+            boardGroup.add(baseMesh);
+
+            const ringPlate = new THREE.Mesh(new THREE.CylinderGeometry(0.54, 0.58, 0.06, 24), metalDarkMat);
+            ringPlate.position.set(x, 0.03, z);
+            boardGroup.add(ringPlate);
+
+            const swBtn = new THREE.Mesh(new THREE.CylinderGeometry(0.42, 0.45, 0.14, 24), softSwitchMat);
+            swBtn.position.set(x, 0.10, z);
+            swBtn.castShadow = true;
+            boardGroup.add(swBtn);
+
+            const swPip = new THREE.Mesh(new THREE.SphereGeometry(0.12, 16, 12), new THREE.MeshBasicMaterial({ color: 0xfffbeb }));
+            swPip.position.set(x, 0.17, z);
+            boardGroup.add(swPip);
+          }
+          else if (type === 5) {
+            // 5. CÔNG TẮC NẶNG (HEAVY SWITCH) - Đế thép có 4 ốc vít, dấu X đỏ ruby nổi khối
+            const baseMesh = new THREE.Mesh(
+              new THREE.BoxGeometry(TILE_SCALE * 0.96, 0.35, TILE_SCALE * 0.96),
+              [sideMat, sideMat, tileMat, sideMat, sideMat, sideMat]
+            );
+            baseMesh.position.set(x, -0.175, z);
+            baseMesh.receiveShadow = true;
+            boardGroup.add(baseMesh);
+
+            const sqPlate = new THREE.Mesh(new THREE.BoxGeometry(1.25, 0.05, 1.25), metalDarkMat);
+            sqPlate.position.set(x, 0.025, z);
+            boardGroup.add(sqPlate);
+
+            const boltGeo = new THREE.CylinderGeometry(0.06, 0.06, 0.06, 8);
+            const corners = [[-0.5, -0.5], [0.5, -0.5], [-0.5, 0.5], [0.5, 0.5]];
+            corners.forEach(([cx, cz]) => {
+              const bolt = new THREE.Mesh(boltGeo, boltMat);
+              bolt.position.set(x + cx, 0.06, z + cz);
+              boardGroup.add(bolt);
+            });
+
+            const beamGeo = new THREE.BoxGeometry(0.96, 0.15, 0.26);
+            const beam1 = new THREE.Mesh(beamGeo, heavySwitchMat);
+            beam1.position.set(x, 0.11, z);
+            beam1.rotation.y = Math.PI / 4;
+            beam1.castShadow = true;
+
+            const beam2 = new THREE.Mesh(beamGeo, heavySwitchMat);
+            beam2.position.set(x, 0.11, z);
+            beam2.rotation.y = -Math.PI / 4;
+            beam2.castShadow = true;
+
+            boardGroup.add(beam1);
+            boardGroup.add(beam2);
+          }
+          else if (type === 6) {
+            // 6. CÔNG TẮC TÁCH KHỐI (SPLIT SWITCH) - Vòng ma thuật tím & Tinh thể bát diện lơ lửng
+            const baseMesh = new THREE.Mesh(
+              new THREE.BoxGeometry(TILE_SCALE * 0.96, 0.35, TILE_SCALE * 0.96),
+              [sideMat, sideMat, tileMat, sideMat, sideMat, sideMat]
+            );
+            baseMesh.position.set(x, -0.175, z);
+            baseMesh.receiveShadow = true;
+            boardGroup.add(baseMesh);
+
+            const ringRune = new THREE.Mesh(
+              new THREE.RingGeometry(0.36, 0.58, 32),
+              new THREE.MeshBasicMaterial({ color: 0xa855f7, side: THREE.DoubleSide })
+            );
+            ringRune.rotation.x = -Math.PI / 2;
+            ringRune.position.set(x, 0.015, z);
+            boardGroup.add(ringRune);
+
+            const crystal = new THREE.Mesh(new THREE.OctahedronGeometry(0.38, 0), splitSwitchMat);
+            crystal.name = "floatingCrystal";
+            crystal.userData = { baseY: 0.55, phase: (r * 7 + c * 13) % 10 };
+            crystal.position.set(x, 0.55, z);
+            crystal.castShadow = true;
+            boardGroup.add(crystal);
+          }
+          else if (type === 7) {
+            // 7. Ô DỊCH CHUYỂN / SPECIAL (TELEPORT) - Cổng không gian ngọc lục bảo
+            const baseMesh = new THREE.Mesh(
+              new THREE.BoxGeometry(TILE_SCALE * 0.96, 0.35, TILE_SCALE * 0.96),
+              [sideMat, sideMat, tileMat, sideMat, sideMat, sideMat]
+            );
+            baseMesh.position.set(x, -0.175, z);
+            boardGroup.add(baseMesh);
+
+            const emeraldRune = new THREE.Mesh(
+              new THREE.RingGeometry(0.35, 0.56, 32),
+              new THREE.MeshBasicMaterial({ color: 0x10b981, side: THREE.DoubleSide })
+            );
+            emeraldRune.rotation.x = -Math.PI / 2;
+            emeraldRune.position.set(x, 0.015, z);
+            boardGroup.add(emeraldRune);
+
+            const gem = new THREE.Mesh(
+              new THREE.OctahedronGeometry(0.34, 0),
+              new THREE.MeshStandardMaterial({ color: 0x10b981, emissive: 0x059669, emissiveIntensity: 0.8, roughness: 0.1 })
+            );
+            gem.name = "floatingCrystal";
+            gem.userData = { baseY: 0.52, phase: (r * 3 + c * 5) % 10 };
+            gem.position.set(x, 0.52, z);
+            boardGroup.add(gem);
+          }
+          else if (type === 9) {
+            // 9. Ô ĐÍCH (GOAL PIT) - Hố đen sâu thẳm, viền vàng hổ phách, vòng hào quang xoay
+            const frame = new THREE.Mesh(
+              new THREE.BoxGeometry(TILE_SCALE * 0.98, 0.28, TILE_SCALE * 0.98),
+              goalFrameMat
+            );
+            frame.position.set(x, -0.12, z);
+            boardGroup.add(frame);
+
+            const pit = new THREE.Mesh(
+              new THREE.BoxGeometry(TILE_SCALE * 0.82, 6.0, TILE_SCALE * 0.82),
+              new THREE.MeshBasicMaterial({ color: 0x000000 })
+            );
+            pit.position.set(x, -3.0, z);
+            boardGroup.add(pit);
+
+            const halo = new THREE.Mesh(
+              new THREE.TorusGeometry(0.56, 0.05, 16, 32),
+              goalHaloMat
+            );
+            halo.name = "goalHalo";
+            halo.rotation.x = Math.PI / 2;
+            halo.position.set(x, 0.03, z);
+            boardGroup.add(halo);
           }
         }
       }
@@ -1357,6 +1756,18 @@
     let orbitAngle = 0;
     function renderLoop() {
       requestAnimationFrame(renderLoop);
+
+      // Hoạt ảnh xoay & bay bổng cho tinh thể pha lê và vòng hào quang ô đích
+      const nowTime = performance.now() * 0.001;
+      boardGroup.children.forEach(child => {
+        if (child.name === "floatingCrystal") {
+          child.rotation.y += 0.03;
+          child.rotation.x = Math.sin(nowTime * 2 + child.userData.phase) * 0.15;
+          child.position.y = child.userData.baseY + Math.sin(nowTime * 3 + child.userData.phase) * 0.08;
+        } else if (child.name === "goalHalo") {
+          child.rotation.z += 0.02;
+        }
+      });
 
       if (!inGameActive) {
         // Camera xoay nhẹ cinematic khi ở màn hình bắt đầu
