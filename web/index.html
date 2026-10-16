@@ -1,13 +1,21 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="vi">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Bloxorz 3D - AI Solver Studio</title>
+  <title>Bloxorz 3D - AI Solver Studio & Stage Hub</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700;800&display=swap" rel="stylesheet">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700;800&display=swap"
+    rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+
   <style>
+    /* =========================================================================
+       1. CSS TOÀN CỤC & BIẾN MÀU THEME (CYBERPUNK GLASSMORPHISM)
+       ========================================================================= */
     :root {
       --bg-dark: #060913;
       --cyan-glow: #00f2fe;
@@ -15,193 +23,846 @@
       --gold-glow: #f59e0b;
       --emerald-glow: #10b981;
       --rose-glow: #f43f5e;
-      --panel-surface: rgba(11, 17, 32, 0.78);
+      --purple-glow: #a855f7;
+      --panel-surface: rgba(11, 17, 32, 0.82);
       --panel-border: rgba(255, 255, 255, 0.12);
       --text-main: #f8fafc;
       --text-sub: #94a3b8;
     }
 
-    * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      user-select: none;
+    }
+
     body {
       background: radial-gradient(circle at 45% 40%, #0d1527 0%, #060913 60%, #020408 100%);
       color: var(--text-main);
       font-family: 'Plus Jakarta Sans', sans-serif;
       overflow: hidden;
-      width: 100vw; height: 100vh;
+      width: 100vw;
+      height: 100vh;
     }
 
-    #webgl-canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; }
+    #webgl-canvas {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 1;
+    }
+
     .vignette {
-      position: absolute; inset: 0; pointer-events: none; z-index: 2;
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      z-index: 2;
       background: radial-gradient(circle at 45% 45%, transparent 35%, rgba(2, 4, 8, 0.75) 100%);
       box-shadow: inset 0 0 100px rgba(0, 0, 0, 0.9);
     }
 
-    .brand-dock {
-      position: absolute; top: 30px; left: 36px; z-index: 10;
-      display: flex; flex-direction: column; gap: 8px;
-    }
-    .brand-title {
-      font-size: 30px; font-weight: 800; letter-spacing: -0.5px;
-      background: linear-gradient(135deg, #ffffff 30%, #94a3b8 100%);
-      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-    }
-    .brand-badge {
-      display: inline-flex; align-items: center; gap: 8px;
-      font-family: 'JetBrains Mono', monospace; font-size: 11.5px; font-weight: 700;
-      color: var(--cyan-glow); background: rgba(0, 242, 254, 0.08);
-      border: 1px solid rgba(0, 242, 254, 0.3); padding: 5px 14px; border-radius: 999px;
-    }
-    .pulse-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--cyan-glow); box-shadow: 0 0 10px var(--cyan-glow); }
-
-    .hud-sidebar {
-      position: absolute; top: 30px; right: 36px; bottom: 30px; width: 380px;
-      background: var(--panel-surface); backdrop-filter: blur(30px);
-      border: 1px solid var(--panel-border); border-radius: 26px;
-      box-shadow: 0 30px 80px rgba(0, 0, 0, 0.75); z-index: 10; padding: 24px;
-      display: flex; flex-direction: column; gap: 14px; overflow-y: auto;
-    }
-    .hud-sidebar::-webkit-scrollbar { display: none; }
-
-    .card {
-      background: rgba(255, 255, 255, 0.035); border: 1px solid rgba(255, 255, 255, 0.07);
-      border-radius: 18px; padding: 15px 18px;
-    }
-    .card-head {
-      font-family: 'JetBrains Mono', monospace; font-size: 11px; font-weight: 700;
-      text-transform: uppercase; letter-spacing: 1.2px; color: var(--text-sub);
-      margin-bottom: 10px; display: flex; justify-content: space-between;
+    /* =========================================================================
+       2. MÀN HÌNH BẮT ĐẦU (START SCREEN OVERLAY)
+       ========================================================================= */
+    #start-screen {
+      position: fixed;
+      inset: 0;
+      z-index: 50;
+      background: radial-gradient(circle at center, rgba(13, 21, 39, 0.88) 0%, rgba(3, 7, 18, 0.96) 100%);
+      backdrop-filter: blur(25px);
+      -webkit-backdrop-filter: blur(25px);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      transition: opacity 0.5s cubic-bezier(0.16, 1, 0.3, 1), visibility 0.5s;
     }
 
-    .telemetry-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
-    .telemetry-row:last-child { margin-bottom: 0; }
-    .telemetry-key { font-size: 13px; color: var(--text-sub); }
-    .telemetry-val { font-family: 'JetBrains Mono', monospace; font-size: 14px; font-weight: 700; color: #fff; }
-    .counter-hero { font-size: 26px; color: var(--cyan-glow); }
-
-    .status-badge {
-      font-family: 'JetBrains Mono', monospace; font-size: 11px; font-weight: 800;
-      padding: 4px 12px; border-radius: 6px;
+    #start-screen.hidden {
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
     }
-    .status-playing { background: rgba(0, 242, 254, 0.12); border: 1px solid var(--cyan-glow); color: var(--cyan-glow); }
-    .status-won { background: rgba(16, 185, 129, 0.15); border: 1px solid var(--emerald-glow); color: var(--emerald-glow); }
-    .status-fell { background: rgba(244, 63, 94, 0.15); border: 1px solid var(--rose-glow); color: var(--rose-glow); }
 
-    /* Solver buttons */
-    .solver-list { display: flex; flex-direction: column; gap: 8px; }
-    .solver-btn {
-      width: 100%; padding: 12px 14px; border-radius: 12px; border: 1px solid transparent;
-      color: #fff; font-family: 'Plus Jakarta Sans', sans-serif; font-size: 13px; font-weight: 600;
-      cursor: pointer; display: flex; align-items: center; justify-content: space-between;
+    .start-content {
+      text-align: center;
+      max-width: 640px;
+      padding: 40px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 22px;
+    }
+
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--cyan-glow);
+      background: rgba(0, 242, 254, 0.1);
+      border: 1px solid rgba(0, 242, 254, 0.3);
+      padding: 6px 16px;
+      border-radius: 999px;
+      letter-spacing: 1px;
+    }
+
+    .hero-title {
+      font-size: 58px;
+      font-weight: 800;
+      letter-spacing: -1.5px;
+      line-height: 1.1;
+      background: linear-gradient(135deg, #ffffff 40%, #94a3b8 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      filter: drop-shadow(0 10px 25px rgba(0, 242, 254, 0.25));
+    }
+
+    .hero-desc {
+      font-size: 15px;
+      color: var(--text-sub);
+      line-height: 1.6;
+    }
+
+    .start-btn-group {
+      display: flex;
+      gap: 16px;
+      width: 100%;
+      margin-top: 10px;
+    }
+
+    .btn-hero {
+      flex: 1;
+      padding: 16px 28px;
+      border-radius: 14px;
+      font-size: 15px;
+      font-weight: 700;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      cursor: pointer;
+      border: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .btn-hero-play {
+      background: linear-gradient(135deg, var(--cyan-glow), var(--blue-accent));
+      color: #030712;
+      box-shadow: 0 0 30px rgba(0, 242, 254, 0.4);
+    }
+
+    .btn-hero-play:hover {
+      transform: translateY(-3px) scale(1.02);
+      box-shadow: 0 0 45px rgba(0, 242, 254, 0.6);
+    }
+
+    .btn-hero-stages {
+      background: rgba(255, 255, 255, 0.05);
+      color: #fff;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      backdrop-filter: blur(10px);
+    }
+
+    .btn-hero-stages:hover {
+      background: rgba(255, 255, 255, 0.12);
+      border-color: rgba(255, 255, 255, 0.3);
+      transform: translateY(-3px);
+    }
+
+    .hero-tips {
+      display: flex;
+      gap: 18px;
+      font-size: 12.5px;
+      color: #64748b;
+      margin-top: 10px;
+    }
+
+    .hero-tips span {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    /* =========================================================================
+       3. BẢNG CHỌN MÀN CHƠI (STAGE SELECTION MODAL)
+       ========================================================================= */
+    #stage-modal {
+      position: fixed;
+      inset: 0;
+      z-index: 60;
+      background: rgba(3, 7, 18, 0.85);
+      backdrop-filter: blur(25px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 30px;
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    #stage-modal.active {
+      opacity: 1;
+      visibility: visible;
+      pointer-events: auto;
+    }
+
+    .stage-modal-box {
+      width: 1000px;
+      max-width: 95vw;
+      max-height: 85vh;
+      background: var(--panel-surface);
+      border: 1px solid var(--panel-border);
+      border-radius: 28px;
+      padding: 32px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      box-shadow: 0 25px 80px rgba(0, 0, 0, 0.8), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    }
+
+    .modal-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .modal-title-group h2 {
+      font-size: 24px;
+      font-weight: 800;
+      color: #fff;
+      letter-spacing: -0.5px;
+    }
+
+    .modal-title-group p {
+      font-size: 13px;
+      color: var(--text-sub);
+      margin-top: 3px;
+    }
+
+    .btn-modal-close {
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      color: #fff;
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      cursor: pointer;
+      font-size: 18px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
       transition: all 0.2s;
     }
-    .solver-btn-bfs { background: linear-gradient(135deg, rgba(37, 99, 235, 0.35), rgba(29, 78, 216, 0.2)); border-color: rgba(59, 130, 246, 0.4); }
-    .solver-btn-dfs { background: linear-gradient(135deg, rgba(16, 185, 129, 0.35), rgba(5, 150, 105, 0.2)); border-color: rgba(16, 185, 129, 0.4); }
-    .solver-btn-ucs { background: linear-gradient(135deg, rgba(245, 158, 11, 0.35), rgba(217, 119, 6, 0.2)); border-color: rgba(245, 158, 11, 0.4); }
-    .solver-btn-astar { background: linear-gradient(135deg, rgba(139, 92, 246, 0.4), rgba(124, 58, 237, 0.25)); border-color: rgba(167, 139, 250, 0.5); }
-    .solver-btn:hover { transform: translateY(-2px); filter: brightness(1.15); }
+
+    .btn-modal-close:hover {
+      background: rgba(255, 255, 255, 0.15);
+      transform: rotate(90deg);
+    }
+
+    /* Lưới 20 Stages */
+    .stage-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+      gap: 14px;
+      overflow-y: auto;
+      padding-right: 6px;
+    }
+
+    .stage-grid::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    .stage-grid::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 3px;
+    }
+
+    .stage-card {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 16px;
+      padding: 16px;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+      position: relative;
+    }
+
+    .stage-card:hover {
+      background: rgba(0, 242, 254, 0.08);
+      border-color: var(--cyan-glow);
+      transform: translateY(-3px);
+      box-shadow: 0 10px 25px rgba(0, 242, 254, 0.15);
+    }
+
+    .stage-card.active-stage {
+      background: rgba(0, 242, 254, 0.15);
+      border-color: var(--cyan-glow);
+      box-shadow: 0 0 20px rgba(0, 242, 254, 0.25);
+    }
+
+    .stage-card-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .stage-num {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      font-weight: 800;
+      color: var(--cyan-glow);
+    }
+
+    .diff-badge {
+      font-size: 10px;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 999px;
+      text-transform: uppercase;
+    }
+
+    .diff-easy {
+      background: rgba(16, 185, 129, 0.15);
+      color: #34d399;
+      border: 1px solid rgba(16, 185, 129, 0.3);
+    }
+
+    .diff-medium {
+      background: rgba(56, 189, 248, 0.15);
+      color: #38bdf8;
+      border: 1px solid rgba(56, 189, 248, 0.3);
+    }
+
+    .diff-hard {
+      background: rgba(245, 158, 11, 0.15);
+      color: #fbbf24;
+      border: 1px solid rgba(245, 158, 11, 0.3);
+    }
+
+    .diff-expert {
+      background: rgba(168, 85, 247, 0.15);
+      color: #c084fc;
+      border: 1px solid rgba(168, 85, 247, 0.3);
+    }
+
+    .diff-master {
+      background: rgba(244, 63, 94, 0.15);
+      color: #fb7185;
+      border: 1px solid rgba(244, 63, 94, 0.3);
+    }
+
+    .stage-name {
+      font-size: 14px;
+      font-weight: 700;
+      color: #fff;
+      line-height: 1.3;
+    }
+
+    .stage-mech {
+      font-size: 11.5px;
+      color: var(--text-sub);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    /* =========================================================================
+       4. GIAO DIỆN IN-GAME (HUD HEADER & SIDEBAR)
+       ========================================================================= */
+    .brand-dock {
+      position: absolute;
+      top: 30px;
+      left: 36px;
+      z-index: 10;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .brand-title {
+      font-size: 30px;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+      background: linear-gradient(135deg, #ffffff 30%, #94a3b8 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .brand-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11.5px;
+      font-weight: 700;
+      color: var(--cyan-glow);
+      background: rgba(0, 242, 254, 0.08);
+      border: 1px solid rgba(0, 242, 254, 0.3);
+      padding: 5px 14px;
+      border-radius: 999px;
+    }
+
+    .pulse-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--cyan-glow);
+      box-shadow: 0 0 10px var(--cyan-glow);
+    }
+
+    .hud-sidebar {
+      position: absolute;
+      top: 30px;
+      right: 36px;
+      bottom: 30px;
+      width: 380px;
+      background: var(--panel-surface);
+      backdrop-filter: blur(30px);
+      border: 1px solid var(--panel-border);
+      border-radius: 26px;
+      box-shadow: 0 30px 80px rgba(0, 0, 0, 0.75);
+      z-index: 10;
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      overflow-y: auto;
+    }
+
+    .hud-sidebar::-webkit-scrollbar {
+      display: none;
+    }
+
+    .card {
+      background: rgba(255, 255, 255, 0.035);
+      border: 1px solid rgba(255, 255, 255, 0.07);
+      border-radius: 18px;
+      padding: 15px 18px;
+    }
+
+    .card-head {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1.2px;
+      color: var(--text-sub);
+      margin-bottom: 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .telemetry-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+
+    .telemetry-row:last-child {
+      margin-bottom: 0;
+    }
+
+    .telemetry-key {
+      font-size: 13px;
+      color: var(--text-sub);
+    }
+
+    .telemetry-val {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 14px;
+      font-weight: 700;
+      color: #fff;
+    }
+
+    .counter-hero {
+      font-size: 26px;
+      color: var(--cyan-glow);
+    }
+
+    .status-badge {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      font-weight: 800;
+      padding: 4px 12px;
+      border-radius: 6px;
+    }
+
+    .status-playing {
+      background: rgba(0, 242, 254, 0.12);
+      border: 1px solid var(--cyan-glow);
+      color: var(--cyan-glow);
+    }
+
+    .status-won {
+      background: rgba(16, 185, 129, 0.15);
+      border: 1px solid var(--emerald-glow);
+      color: var(--emerald-glow);
+    }
+
+    .status-fell {
+      background: rgba(244, 63, 94, 0.15);
+      border: 1px solid var(--rose-glow);
+      color: var(--rose-glow);
+    }
+
+    /* Solver buttons */
+    .solver-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .solver-btn {
+      width: 100%;
+      padding: 12px 14px;
+      border-radius: 12px;
+      border: 1px solid transparent;
+      color: #fff;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      transition: all 0.2s;
+    }
+
+    .solver-btn-bfs {
+      background: linear-gradient(135deg, rgba(37, 99, 235, 0.35), rgba(29, 78, 216, 0.2));
+      border-color: rgba(59, 130, 246, 0.4);
+    }
+
+    .solver-btn-dfs {
+      background: linear-gradient(135deg, rgba(16, 185, 129, 0.35), rgba(5, 150, 105, 0.2));
+      border-color: rgba(16, 185, 129, 0.4);
+    }
+
+    .solver-btn-ucs {
+      background: linear-gradient(135deg, rgba(245, 158, 11, 0.35), rgba(217, 119, 6, 0.2));
+      border-color: rgba(245, 158, 11, 0.4);
+    }
+
+    .solver-btn-astar {
+      background: linear-gradient(135deg, rgba(139, 92, 246, 0.4), rgba(124, 58, 237, 0.25));
+      border-color: rgba(167, 139, 250, 0.5);
+    }
+
+    .solver-btn:hover {
+      transform: translateY(-2px);
+      filter: brightness(1.15);
+    }
 
     .tag-badge {
-      font-family: 'JetBrains Mono', monospace; font-size: 10px; font-weight: 700;
-      padding: 2px 7px; border-radius: 5px; background: rgba(0, 0, 0, 0.4); border: 1px solid rgba(255, 255, 255, 0.1);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      font-weight: 700;
+      padding: 2px 7px;
+      border-radius: 5px;
+      background: rgba(0, 0, 0, 0.4);
+      border: 1px solid rgba(255, 255, 255, 0.1);
     }
 
-    .cam-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
-    .cam-btn {
-      background: rgba(255, 255, 255, 0.04); border: 1px solid rgba(255, 255, 255, 0.08);
-      border-radius: 10px; color: var(--text-sub); font-size: 11.5px; font-weight: 600;
-      padding: 8px 4px; cursor: pointer; text-align: center;
+    .cam-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
     }
-    .cam-btn.active, .cam-btn:hover {
-      background: rgba(0, 242, 254, 0.15); border-color: var(--cyan-glow); color: #fff;
+
+    .cam-btn {
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 10px;
+      color: var(--text-sub);
+      font-size: 11.5px;
+      font-weight: 600;
+      padding: 8px 4px;
+      cursor: pointer;
+      text-align: center;
+      transition: all 0.2s;
+    }
+
+    .cam-btn.active,
+    .cam-btn:hover {
+      background: rgba(0, 242, 254, 0.15);
+      border-color: var(--cyan-glow);
+      color: #fff;
     }
 
     .btn-action-ghost {
-      width: 100%; padding: 12px; border-radius: 12px; border: 1px solid rgba(255, 255, 255, 0.1);
-      background: rgba(255, 255, 255, 0.05); color: #fff; font-size: 13px; font-weight: 600;
-      cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;
+      width: 100%;
+      padding: 12px;
+      border-radius: 12px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      background: rgba(255, 255, 255, 0.05);
+      color: #fff;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: all 0.2s;
     }
-    .btn-action-ghost:hover { background: rgba(255, 255, 255, 0.12); }
+
+    .btn-action-ghost:hover {
+      background: rgba(255, 255, 255, 0.12);
+      border-color: rgba(255, 255, 255, 0.25);
+    }
+
+    .btn-open-stages {
+      background: linear-gradient(135deg, rgba(0, 242, 254, 0.15), rgba(56, 189, 248, 0.08));
+      border: 1px solid rgba(0, 242, 254, 0.35);
+      color: var(--cyan-glow);
+    }
+
+    .btn-open-stages:hover {
+      background: linear-gradient(135deg, rgba(0, 242, 254, 0.25), rgba(56, 189, 248, 0.15));
+      box-shadow: 0 0 20px rgba(0, 242, 254, 0.2);
+    }
 
     .dock-bar {
-      position: absolute; bottom: 30px; left: 36px; z-index: 10;
-      display: flex; align-items: center; gap: 14px; background: var(--panel-surface);
-      backdrop-filter: blur(24px); border: 1px solid var(--panel-border);
-      padding: 10px 22px; border-radius: 999px; font-size: 13px; color: var(--text-sub);
+      position: absolute;
+      bottom: 30px;
+      left: 36px;
+      z-index: 10;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      background: var(--panel-surface);
+      backdrop-filter: blur(24px);
+      border: 1px solid var(--panel-border);
+      padding: 10px 22px;
+      border-radius: 999px;
+      font-size: 13px;
+      color: var(--text-sub);
     }
+
     .kbd-chip {
-      background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.2);
-      padding: 2px 8px; border-radius: 6px; color: #fff; font-family: 'JetBrains Mono', monospace; font-size: 11px; font-weight: 700;
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      padding: 2px 7px;
+      border-radius: 5px;
+      color: #fff;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
     }
   </style>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 </head>
+
 <body>
   <div class="vignette"></div>
 
+  <!-- =========================================================================
+       MÀN HÌNH BẮT ĐẦU (START SCREEN OVERLAY)
+       ========================================================================= -->
+  <div id="start-screen">
+    <div class="start-content">
+      <div class="hero-badge">HCMUS • AI PROJECT 1 • BLOXORZ 3D</div>
+      <h1 class="hero-title">BLOXORZ 3D</h1>
+      <p class="hero-desc">
+        Hệ thống mô phỏng không gian hình học 3D kết hợp bộ giải thuật toán thông minh
+        (BFS, DFS, UCS, A*) trên 20 màn chơi thử thách.
+      </p>
+
+      <div class="start-btn-group">
+        <button class="btn-hero btn-hero-play" onclick="startGame()">
+          <span>▶</span> BẮT ĐẦU CHƠI
+        </button>
+        <button class="btn-hero btn-hero-stages" onclick="openStageModal()">
+          <span>🗺️</span> CHỌN MÀN CHƠI (20 STAGES)
+        </button>
+      </div>
+
+      <div class="hero-tips">
+        <span><span class="kbd-chip">W A S D</span> / <span class="kbd-chip">↑ ↓ ← →</span> Di chuyển</span>
+        <span>•</span>
+        <span><span class="kbd-chip">R</span> Đặt lại màn</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- =========================================================================
+       BẢNG MODAL CHỌN MÀN CHƠI (STAGE SELECTION)
+       ========================================================================= -->
+  <div id="stage-modal">
+    <div class="stage-modal-box">
+      <div class="modal-head">
+        <div class="modal-title-group">
+          <h2>Danh Sách 20 Thử Thách Bloxorz</h2>
+          <p>Lựa chọn thử thách để trải nghiệm lăn khối hoặc đo đạc hiệu năng của 4 thuật toán AI.</p>
+        </div>
+        <button class="btn-modal-close" onclick="closeStageModal()">✕</button>
+      </div>
+
+      <div class="stage-grid" id="stage-grid-container">
+        <!-- Được sinh động bằng hàm JavaScript populateStageGrid() -->
+      </div>
+    </div>
+  </div>
+
+  <!-- =========================================================================
+       GIAO DIỆN IN-GAME (HUD HEADER & SIDEBAR)
+       ========================================================================= -->
   <div class="brand-dock">
-    <div class="brand-title">BLOXORZ 3D</div>
-    <div class="brand-badge"><span class="pulse-dot"></span> STAGE 01 • ORIGINAL SANCTUARY</div>
+    <div class="brand-badge"><span class="pulse-dot"></span> BLOXORZ 3D STUDIO</div>
+    <div class="brand-title">Bloxorz AI Solver</div>
   </div>
 
   <div class="hud-sidebar">
+    <!-- Thẻ Màn Chơi Hiện Tại -->
     <div class="card">
-      <div class="card-head"><span>STAGE TELEMETRY</span><span>LIVE</span></div>
-      <div class="telemetry-row"><span class="telemetry-key">Roll Counter</span><span id="ui-moves" class="telemetry-val counter-hero">0</span></div>
-      <div class="telemetry-row" style="margin-top: 10px;"><span class="telemetry-key">Stage Status</span><span id="ui-status" class="status-badge status-playing">PLAYING</span></div>
-      <div class="telemetry-row"><span class="telemetry-key">Orientation</span><span id="ui-orient" class="telemetry-val" style="color: var(--cyan-glow)">Standing (1 × 1)</span></div>
+      <div class="card-head">
+        <span>STAGE HIỆN TẠI</span>
+        <span class="diff-badge diff-easy" id="hud-stage-diff">EASY</span>
+      </div>
+      <div class="telemetry-row">
+        <span class="telemetry-key" id="hud-stage-name" style="font-weight: 700; color: #fff; font-size: 15px;">Stage 01
+          - The Beginning</span>
+      </div>
+      <button class="btn-action-ghost btn-open-stages" onclick="openStageModal()" style="margin-top: 10px;">
+        <span>🗺️</span> Đổi Màn Chơi (20 Stages)
+      </button>
     </div>
 
+    <!-- Thẻ Trạng Thái & Số Bước -->
     <div class="card">
-      <div class="card-head"><span>AI SEARCH SOLVERS</span><span>PYTHON API</span></div>
+      <div class="card-head"><span>TRẠNG THÁI KHỐI HỘP</span></div>
+      <div class="telemetry-row">
+        <span class="telemetry-key">Số bước di chuyển:</span>
+        <span class="telemetry-val counter-hero" id="ui-moves">0</span>
+      </div>
+      <div class="telemetry-row">
+        <span class="telemetry-key">Tư thế:</span>
+        <span class="telemetry-val" id="ui-orient">Standing (1 × 1)</span>
+      </div>
+      <div class="telemetry-row">
+        <span class="telemetry-key">Trạng thái:</span>
+        <span class="status-badge status-playing" id="ui-status">PLAYING</span>
+      </div>
+    </div>
+
+    <!-- Thẻ Bộ Giải Thuật Toán AI -->
+    <div class="card">
+      <div class="card-head"><span>BỘ GIẢI THUẬT TOÁN AI</span></div>
       <div class="solver-list">
         <button class="solver-btn solver-btn-bfs" onclick="callPythonSolver('BFS')">
-          <span>⚡ Breadth-First (BFS)</span><span class="tag-badge">Phúc</span>
+          <span>BFS (Breadth-First)</span>
+          <span class="tag-badge">Phúc</span>
         </button>
         <button class="solver-btn solver-btn-dfs" onclick="callPythonSolver('DFS')">
-          <span>🌲 Depth-First (DFS)</span><span class="tag-badge">Đức</span>
+          <span>DFS / IDS</span>
+          <span class="tag-badge">Đức</span>
         </button>
         <button class="solver-btn solver-btn-ucs" onclick="callPythonSolver('UCS')">
-          <span>⚖️ Uniform-Cost (UCS)</span><span class="tag-badge">Trường</span>
+          <span>UCS (Dijkstra)</span>
+          <span class="tag-badge">Trường</span>
         </button>
         <button class="solver-btn solver-btn-astar" onclick="callPythonSolver('ASTAR')">
-          <span>⭐ A* Search</span><span class="tag-badge">Quân</span>
+          <span>A* Search (Manhattan)</span>
+          <span class="tag-badge">Quân</span>
         </button>
       </div>
     </div>
 
+    <!-- Thẻ Kết Quả Đo Hiệu Năng -->
     <div class="card">
-      <div class="card-head"><span>BENCHMARK METRICS</span><span id="bm-algo">N/A</span></div>
-      <div class="telemetry-row"><span class="telemetry-key">Search Time:</span><span id="bm-time" class="telemetry-val">-- ms</span></div>
-      <div class="telemetry-row"><span class="telemetry-key">Peak Memory:</span><span id="bm-mem" class="telemetry-val">-- KB</span></div>
-      <div class="telemetry-row"><span class="telemetry-key">Nodes Expanded:</span><span id="bm-nodes" class="telemetry-val">--</span></div>
-      <div class="telemetry-row"><span class="telemetry-key">Solution Steps:</span><span id="bm-steps" class="telemetry-val">--</span></div>
-    </div>
-
-    <div class="card">
-      <div class="card-head">CAMERA RIG</div>
-      <div class="cam-grid">
-        <button id="cam-iso" class="cam-btn active" onclick="setCam('iso')">Isometric</button>
-        <button id="cam-cinematic" class="cam-btn" onclick="setCam('cinematic')">Cinematic</button>
-        <button id="cam-top" class="cam-btn" onclick="setCam('top')">Top-Down</button>
+      <div class="card-head"><span>KẾT QUẢ ĐO HIỆU NĂNG</span></div>
+      <div class="telemetry-row">
+        <span class="telemetry-key">Thuật toán:</span>
+        <span class="telemetry-val" id="bm-algo">---</span>
+      </div>
+      <div class="telemetry-row">
+        <span class="telemetry-key">Thời gian chạy:</span>
+        <span class="telemetry-val" id="bm-time">---</span>
+      </div>
+      <div class="telemetry-row">
+        <span class="telemetry-key">Bộ nhớ tiêu thụ:</span>
+        <span class="telemetry-val" id="bm-mem">---</span>
+      </div>
+      <div class="telemetry-row">
+        <span class="telemetry-key">Nút mở rộng:</span>
+        <span class="telemetry-val" id="bm-nodes">---</span>
+      </div>
+      <div class="telemetry-row">
+        <span class="telemetry-key">Độ dài đường đi:</span>
+        <span class="telemetry-val" id="bm-steps">---</span>
       </div>
     </div>
 
+    <!-- Góc Nhìn Camera -->
+    <div class="card">
+      <div class="card-head"><span>GÓC NHÌN CAMERA</span></div>
+      <div class="cam-grid">
+        <div class="cam-btn active" id="btn-cam-iso" onclick="setCamera('iso')">Isometric</div>
+        <div class="cam-btn" id="btn-cam-side" onclick="setCamera('side')">Side</div>
+        <div class="cam-btn" id="btn-cam-top" onclick="setCamera('top')">Top-down</div>
+      </div>
+    </div>
+
+    <!-- Nút Đặt Lại -->
     <div class="card" style="margin-top: auto;">
-      <button class="btn-action-ghost" onclick="resetStage()"><span>🔄</span> Reset Stage (Key: R)</button>
+      <button class="btn-action-ghost" onclick="resetStage()"><span>🔄</span> Đặt Lại Màn (Phím: R)</button>
     </div>
   </div>
 
   <div class="dock-bar">
-    <span>Controls: <span class="kbd-chip">W</span> <span class="kbd-chip">A</span> <span class="kbd-chip">S</span> <span class="kbd-chip">D</span> or <span class="kbd-chip">↑</span> <span class="kbd-chip">↓</span> <span class="kbd-chip">←</span> <span class="kbd-chip">→</span></span>
+    <span>Điều khiển: <span class="kbd-chip">W</span> <span class="kbd-chip">A</span> <span class="kbd-chip">S</span>
+      <span class="kbd-chip">D</span> hoặc <span class="kbd-chip">↑</span> <span class="kbd-chip">↓</span> <span
+        class="kbd-chip">←</span> <span class="kbd-chip">→</span></span>
     <span>•</span>
-    <span>Reset: <span class="kbd-chip">R</span></span>
+    <span>Đặt lại: <span class="kbd-chip">R</span></span>
   </div>
 
   <canvas id="webgl-canvas"></canvas>
 
   <script>
-    // Procedural Audio
+    /* =========================================================================
+       1. CẤU HÌNH HẰNG SỐ TOÀN CỤC (GLOBAL CONFIG & CONSTANTS)
+       ========================================================================= */
+    // Tỷ lệ kích thước mỗi ô bàn cờ (Three.js world units)
+    const TILE_SCALE = 2.0;
+
+    // Cấu hình góc nhìn và cự ly camera
+    const CAM_FOV = 38;
+    const CAM_TOP_ZOOM_FACTOR = 2.4;     // Hệ số độ cao theo kích thước bàn cờ cho Top-down
+    const CAM_TOP_MIN_HEIGHT = 16.0;    // Độ cao tối thiểu góc Top-down
+    const CAM_TOP_SHIFT_X = 2.0;        // Độ lệch trục X tránh thanh HUD bên phải
+    const CAM_ISO_DISTANCE_FACTOR = 1.8; // Hệ số cự ly Isometric
+    const CAM_SIDE_DISTANCE_FACTOR = 2.2;// Hệ số cự ly Side
+
+    // Hoạt ảnh lăn khối hộp (ms)
+    const ROLL_DURATION = 180;
+
+    // Danh sách màn chơi được quét động từ thư mục stages/
+    let loadedStages = [];
+
+    /* =========================================================================
+       2. BIẾN TRẠNG THÁI TOÀN CỤC (GLOBAL STATE)
+       ========================================================================= */
+    let currentStageFile = "stage_01.json";
+    let currentStageData = null;
+    let inGameActive = false;
+    let currentCameraMode = "iso";
+
+    /* =========================================================================
+       3. ÂM THANH PROCEDURAL (WEB AUDIO API TỔNG HỢP)
+       ========================================================================= */
     const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
     function playAudio(type) {
       if (audioCtx.state === 'suspended') audioCtx.resume();
@@ -209,16 +870,46 @@
       if (type === 'roll') {
         const osc = audioCtx.createOscillator();
         const gain = audioCtx.createGain();
-        osc.type = 'triangle'; osc.frequency.setValueAtTime(140, now);
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(140, now);
         osc.frequency.exponentialRampToValueAtTime(45, now + 0.12);
         gain.gain.setValueAtTime(0.25, now);
         gain.gain.exponentialRampToValueAtTime(0.001, now + 0.12);
-        osc.connect(gain); gain.connect(audioCtx.destination);
-        osc.start(now); osc.stop(now + 0.12);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start(now);
+        osc.stop(now + 0.12);
+      } else if (type === 'win') {
+        [523.25, 659.25, 783.99, 1046.50].forEach((freq, idx) => {
+          const osc = audioCtx.createOscillator();
+          const gain = audioCtx.createGain();
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(freq, now + idx * 0.1);
+          gain.gain.setValueAtTime(0.2, now + idx * 0.1);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.1 + 0.35);
+          osc.connect(gain);
+          gain.connect(audioCtx.destination);
+          osc.start(now + idx * 0.1);
+          osc.stop(now + idx * 0.1 + 0.35);
+        });
+      } else if (type === 'fall') {
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(120, now);
+        osc.frequency.exponentialRampToValueAtTime(30, now + 0.4);
+        gain.gain.setValueAtTime(0.3, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.4);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start(now);
+        osc.stop(now + 0.4);
       }
     }
 
-    // Textures
+    /* =========================================================================
+       4. TỰ SINH CHẤT LIỆU TEXTURE CHO BÀN CỜ VÀ KHỐI HỘP
+       ========================================================================= */
     function makeTileTexture() {
       const c = document.createElement('canvas'); c.width = 512; c.height = 512;
       const ctx = c.getContext('2d');
@@ -247,20 +938,9 @@
       return new THREE.CanvasTexture(c);
     }
 
-    // Board Layout
-    const STAGE = [
-      [1, 1, 1, 0, 0, 0, 0, 0, 0, 0],
-      [1, 1, 1, 1, 1, 1, 0, 0, 0, 0],
-      [1, 1, 1, 1, 1, 1, 1, 1, 1, 0],
-      [0, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-      [0, 0, 0, 0, 0, 1, 1, 9, 1, 1],
-      [0, 0, 0, 0, 0, 0, 1, 1, 1, 0]
-    ];
-    const ROWS = STAGE.length;
-    const COLS = STAGE[0].length;
-    const TILE_SCALE = 2.0;
-
-    // Three Scene
+    /* =========================================================================
+       5. THIẾT LẬP THREE.JS SCENE, CAMERA, ÁNH SÁNG & VẬT THỂ
+       ========================================================================= */
     const canvas = document.getElementById('webgl-canvas');
     const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
     renderer.setSize(window.innerWidth, window.innerHeight);
@@ -271,20 +951,20 @@
     const scene = new THREE.Scene();
     scene.fog = new THREE.FogExp2(0x060913, 0.012);
 
-    const camera = new THREE.PerspectiveCamera(38, window.innerWidth / window.innerHeight, 0.1, 1000);
+    const camera = new THREE.PerspectiveCamera(CAM_FOV, window.innerWidth / window.innerHeight, 0.1, 1000);
     let targetCamPos = new THREE.Vector3(-9, 19, 17);
     let targetCamLook = new THREE.Vector3(7.5, 0, 4.5);
     camera.position.copy(targetCamPos);
     camera.lookAt(targetCamLook);
 
-    // Lights
+    // Ánh sáng môi trường và chiếu bóng
     scene.add(new THREE.AmbientLight(0xffffff, 0.75));
     const dirLight = new THREE.DirectionalLight(0xffeedd, 1.9);
     dirLight.position.set(-22, 45, 18); dirLight.castShadow = true;
     scene.add(dirLight);
     scene.add(new THREE.DirectionalLight(0x00f2fe, 0.85));
 
-    // Stars & Floor Grid
+    // Bụi sao và sàn lưới không gian
     const galaxyGeo = new THREE.BufferGeometry();
     const pos = new Float32Array(1200 * 3);
     for (let i = 0; i < 1200 * 3; i++) pos[i] = (Math.random() - 0.5) * 160;
@@ -294,30 +974,15 @@
     const gridHelper = new THREE.GridHelper(80, 40, 0x00f2fe, 0x1e293b);
     gridHelper.position.y = -8; scene.add(gridHelper);
 
-    // Build Board
+    // Vật liệu ô sàn
     const tileMat = new THREE.MeshStandardMaterial({ map: makeTileTexture(), roughness: 0.25 });
+    const fragileMat = new THREE.MeshStandardMaterial({ color: 0xf97316, roughness: 0.4, emissive: 0x7c2d12, emissiveIntensity: 0.3 });
+    const bridgeMat = new THREE.MeshStandardMaterial({ color: 0x00f2fe, roughness: 0.3, emissive: 0x0077aa, emissiveIntensity: 0.4 });
     const sideMat = new THREE.MeshStandardMaterial({ color: 0x182234 });
     const boardGroup = new THREE.Group();
-
-    for (let r = 0; r < ROWS; r++) {
-      for (let c = 0; c < COLS; c++) {
-        const type = STAGE[r][c];
-        if (type === 0) continue;
-        const x = c * TILE_SCALE, z = r * TILE_SCALE;
-        if (type === 9) {
-          const frame = new THREE.Mesh(new THREE.BoxGeometry(TILE_SCALE * 0.98, 0.24, TILE_SCALE * 0.98), new THREE.MeshStandardMaterial({ color: 0xffaa00, emissive: 0xff7700 }));
-          frame.position.set(x, -0.08, z); boardGroup.add(frame);
-          const pit = new THREE.Mesh(new THREE.BoxGeometry(TILE_SCALE * 0.82, 5.0, TILE_SCALE * 0.82), new THREE.MeshBasicMaterial({ color: 0x010204 }));
-          pit.position.set(x, -2.5, z); boardGroup.add(pit);
-        } else {
-          const tile = new THREE.Mesh(new THREE.BoxGeometry(TILE_SCALE * 0.95, 0.65, TILE_SCALE * 0.95), [sideMat, sideMat, tileMat, sideMat, sideMat, sideMat]);
-          tile.position.set(x, -0.325, z); tile.receiveShadow = true; boardGroup.add(tile);
-        }
-      }
-    }
     scene.add(boardGroup);
 
-    // Block
+    // Khối hộp Bloxorz (1x1x2)
     const blockMat = new THREE.MeshStandardMaterial({ map: makeBlockTexture(), roughness: 0.3 });
     const cubeGeo = new THREE.BoxGeometry(TILE_SCALE * 0.92, TILE_SCALE * 0.92, TILE_SCALE * 0.92);
     const blockMaster = new THREE.Group();
@@ -325,9 +990,94 @@
     const cubeB = new THREE.Mesh(cubeGeo, blockMat); cubeB.castShadow = true;
     blockMaster.add(cubeA); blockMaster.add(cubeB); scene.add(blockMaster);
 
+    // Biến trạng thái ván chơi
     let blockR = 1, blockC = 1, blockOrient = 0, moves = 0, gameState = "PLAYING", isRolling = false;
+    let currentGrid = [];
 
-    function syncState() {
+    /* =========================================================================
+       6. XÂY DỰNG LẠI BÀN CỜ 3D TỰ ĐỘNG THEO DỮ LIỆU JSON (DYNAMIC REBUILD)
+       ========================================================================= */
+    function buildBoard(data) {
+      currentStageData = data;
+      currentGrid = data.grid;
+
+      // Xóa các mesh ô sàn cũ
+      while (boardGroup.children.length > 0) {
+        boardGroup.remove(boardGroup.children[0]);
+      }
+
+      const rows = currentGrid.length;
+      const cols = currentGrid[0].length;
+
+      for (let r = 0; r < rows; r++) {
+        for (let c = 0; c < cols; c++) {
+          const type = currentGrid[r][c];
+          if (type === 0) continue; // Khoảng trống
+          const x = c * TILE_SCALE, z = r * TILE_SCALE;
+
+          if (type === 9) {
+            // Ô đích (Hố đen viền vàng phát quang)
+            const frame = new THREE.Mesh(new THREE.BoxGeometry(TILE_SCALE * 0.98, 0.24, TILE_SCALE * 0.98), new THREE.MeshStandardMaterial({ color: 0xffaa00, emissive: 0xff7700 }));
+            frame.position.set(x, -0.08, z); boardGroup.add(frame);
+            const pit = new THREE.Mesh(new THREE.BoxGeometry(TILE_SCALE * 0.82, 5.0, TILE_SCALE * 0.82), new THREE.MeshBasicMaterial({ color: 0x010204 }));
+            pit.position.set(x, -2.5, z); boardGroup.add(pit);
+          } else {
+            // Ô sàn chuẩn, gạch vỡ hoặc cầu nối
+            let mTop = tileMat;
+            if (type === 2) mTop = fragileMat;
+            else if (type === 3) mTop = bridgeMat;
+
+            const tMesh = new THREE.Mesh(new THREE.BoxGeometry(TILE_SCALE * 0.96, 0.35, TILE_SCALE * 0.96), [sideMat, sideMat, mTop, sideMat, sideMat, sideMat]);
+            tMesh.position.set(x, -0.175, z); tMesh.receiveShadow = true;
+            boardGroup.add(tMesh);
+
+            // Công tắc mềm (4) hoặc công tắc nặng (5) hoặc tách khối (6)
+            if (type === 4) {
+              const sw = new THREE.Mesh(new THREE.CylinderGeometry(0.4, 0.45, 0.15, 16), new THREE.MeshStandardMaterial({ color: 0xfacc15, emissive: 0xca8a04 }));
+              sw.position.set(x, 0.08, z); boardGroup.add(sw);
+            } else if (type === 5) {
+              const sw = new THREE.Mesh(new THREE.BoxGeometry(0.7, 0.15, 0.7), new THREE.MeshStandardMaterial({ color: 0xf43f5e, emissive: 0xbe123c }));
+              sw.position.set(x, 0.08, z); sw.rotation.y = Math.PI / 4; boardGroup.add(sw);
+            } else if (type === 6) {
+              const sw = new THREE.Mesh(new THREE.OctahedronGeometry(0.35), new THREE.MeshStandardMaterial({ color: 0xa855f7, emissive: 0x7e22ce }));
+              sw.position.set(x, 0.25, z); boardGroup.add(sw);
+            }
+          }
+        }
+      }
+
+      // Cập nhật thông tin HUD động từ file stage JSON hoặc từ danh sách đã nạp
+      const stageName = data.name || (loadedStages.find(s => s.id === currentStageFile)?.name) || currentStageFile;
+      const stageDiff = String(data.difficulty || (loadedStages.find(s => s.id === currentStageFile)?.diff) || "medium").toLowerCase();
+      document.getElementById('hud-stage-name').textContent = stageName;
+      const diffEl = document.getElementById('hud-stage-diff');
+      diffEl.textContent = stageDiff.toUpperCase();
+      diffEl.className = `diff-badge diff-${stageDiff}`;
+
+      // Đặt vị trí khối hộp ban đầu
+      resetStage();
+
+      // Tự động căn chỉnh camera và độ phóng to thích ứng theo kích thước stage mới
+      setCamera(currentCameraMode);
+    }
+
+    /* =========================================================================
+       7. QUẢN LÝ VỊ TRÍ, TƯ THẾ VÀ LĂN KHỐI HỘP TRONG KHÔNG GIAN
+       ========================================================================= */
+    function resetStage() {
+      if (!currentStageData) return;
+      blockR = currentStageData.start[0];
+      blockC = currentStageData.start[1];
+      blockOrient = 0;
+      moves = 0;
+      gameState = "PLAYING";
+      isRolling = false;
+      document.getElementById('ui-status').className = 'status-badge status-playing';
+      document.getElementById('ui-status').textContent = 'PLAYING';
+      syncBlockTransform();
+    }
+
+    function syncBlockTransform() {
       const u = TILE_SCALE, half = u * 0.5;
       if (blockOrient === 0) {
         cubeA.position.set(0, half, 0); cubeB.position.set(0, half + u, 0);
@@ -379,37 +1129,158 @@
       const relPos = new THREE.Vector3().subVectors(startPos, pivot);
       const startTime = performance.now();
 
-      function step(now) {
-        const progress = Math.min((now - startTime) / 150, 1);
-        const ease = 1 - Math.pow(1 - progress, 4);
-        const q = new THREE.Quaternion().setFromAxisAngle(rotAxis, ease * (Math.PI / 2));
-        blockMaster.position.copy(pivot).add(relPos.clone().applyQuaternion(q));
+      function animateRoll(t) {
+        const progress = Math.min((t - startTime) / ROLL_DURATION, 1.0);
+        const ease = 0.5 - Math.cos(progress * Math.PI) * 0.5;
+        const angle = ease * (Math.PI / 2);
+
+        const q = new THREE.Quaternion().setFromAxisAngle(rotAxis, angle);
+        blockMaster.position.copy(relPos.clone().applyQuaternion(q).add(pivot));
         blockMaster.quaternion.copy(q);
 
-        if (progress < 1) requestAnimationFrame(step);
-        else {
+        if (progress < 1.0) {
+          requestAnimationFrame(animateRoll);
+        } else {
           blockR = newR; blockC = newC; blockOrient = newO; moves++;
-          blockMaster.quaternion.identity(); syncState(); isRolling = false;
-          if (onComplete) setTimeout(onComplete, 80);
+          blockMaster.quaternion.identity();
+          syncBlockTransform();
+          isRolling = false;
+          checkGameStatus();
+          if (onComplete) onComplete();
         }
       }
-      requestAnimationFrame(step);
+      requestAnimationFrame(animateRoll);
     }
 
-    function resetStage() {
-      blockR = 1; blockC = 1; blockOrient = 0; moves = 0; gameState = "PLAYING"; isRolling = false;
-      syncState();
+    function checkGameStatus() {
+      const occupied = [];
+      if (blockOrient === 0) occupied.push([blockR, blockC]);
+      else if (blockOrient === 1) { occupied.push([blockR, blockC]); occupied.push([blockR, blockC + 1]); }
+      else if (blockOrient === 2) { occupied.push([blockR, blockC]); occupied.push([blockR + 1, blockC]); }
+
+      const rows = currentGrid.length, cols = currentGrid[0].length;
+      let valid = true, isFragileFall = false;
+
+      for (const [r, c] of occupied) {
+        if (r < 0 || r >= rows || c < 0 || c >= cols || currentGrid[r][c] === 0) {
+          valid = false; break;
+        }
+        if (blockOrient === 0 && currentGrid[r][c] === 2) {
+          valid = false; isFragileFall = true; break; // Đứng thẳng trên gạch vỡ
+        }
+      }
+
+      if (!valid) {
+        gameState = "FELL";
+        playAudio('fall');
+        document.getElementById('ui-status').className = 'status-badge status-fell';
+        document.getElementById('ui-status').textContent = isFragileFall ? 'BROKEN TILE' : 'FELL OFF';
+        let fallY = 0;
+        function drop() {
+          fallY -= 0.6; blockMaster.position.y = fallY;
+          if (fallY > -15) requestAnimationFrame(drop);
+          else setTimeout(resetStage, 600);
+        }
+        drop();
+        return;
+      }
+
+      // Kiểm tra ô đích
+      if (blockOrient === 0 && currentGrid[blockR][blockC] === 9) {
+        gameState = "WON";
+        playAudio('win');
+        document.getElementById('ui-status').className = 'status-badge status-won';
+        document.getElementById('ui-status').textContent = 'VICTORY!';
+        let fallY = 0;
+        function dropGoal() {
+          fallY -= 0.2; blockMaster.position.y = fallY;
+          if (fallY > -4) requestAnimationFrame(dropGoal);
+        }
+        dropGoal();
+      }
     }
 
-    // Call Python Solver API
+    /* =========================================================================
+       8. QUẢN LÝ MÀN HÌNH BẮT ĐẦU VÀ BẢNG CHỌN STAGE (QUÉT ĐỘNG TỪ STAGES/)
+       ========================================================================= */
+    async function fetchStagesList() {
+      try {
+        const res = await fetch('/api/stages');
+        const data = await res.json();
+        if (data && Array.isArray(data.stages) && data.stages.length > 0) {
+          loadedStages = data.stages;
+        }
+      } catch (e) {
+        console.warn("Không thể tải /api/stages từ server:", e);
+      }
+      populateStageGrid();
+    }
+
+    function populateStageGrid() {
+      const grid = document.getElementById('stage-grid-container');
+      if (!grid) return;
+      grid.innerHTML = '';
+      loadedStages.forEach((s, idx) => {
+        const card = document.createElement('div');
+        card.className = `stage-card ${s.id === currentStageFile ? 'active-stage' : ''}`;
+        card.onclick = () => selectStage(s.id);
+        const diffText = String(s.diff || 'medium').toLowerCase();
+        card.innerHTML = `
+          <div class="stage-card-top">
+            <span class="stage-num">#${(idx + 1).toString().padStart(2, '0')}</span>
+            <span class="diff-badge diff-${diffText}">${diffText}</span>
+          </div>
+          <div class="stage-name">${s.name || s.id}</div>
+          <div class="stage-mech">⚙️ ${s.mech || 'Cơ bản'}</div>
+        `;
+        grid.appendChild(card);
+      });
+    }
+
+    async function loadStageFile(stageFilename) {
+      currentStageFile = stageFilename;
+      try {
+        const res = await fetch(`/stages/${stageFilename}`);
+        const data = await res.json();
+        buildBoard(data);
+      } catch (e) {
+        console.error("Không thể tải file màn chơi:", e);
+      }
+    }
+
+    function startGame(stageFilename) {
+      document.getElementById('start-screen').classList.add('hidden');
+      inGameActive = true;
+      loadStageFile(stageFilename || currentStageFile || "stage_01.json");
+    }
+
+    function openStageModal() {
+      populateStageGrid();
+      document.getElementById('stage-modal').classList.add('active');
+    }
+
+    function closeStageModal() {
+      document.getElementById('stage-modal').classList.remove('active');
+    }
+
+    function selectStage(stageFilename) {
+      closeStageModal();
+      document.getElementById('start-screen').classList.add('hidden');
+      inGameActive = true;
+      loadStageFile(stageFilename);
+    }
+
+    /* =========================================================================
+       9. KẾT NỐI PYTHON REST API GỌI THUẬT TOÁN TÌM KIẾM
+       ========================================================================= */
     async function callPythonSolver(algo) {
       document.getElementById('bm-algo').textContent = algo;
       document.getElementById('bm-time').textContent = 'Calculating...';
       try {
-        const res = await fetch(`/api/solve?stage=stage_01.json&algo=${algo}`);
+        const res = await fetch(`/api/solve?stage=${currentStageFile}&algo=${algo}`);
         const data = await res.json();
         if (data.status === 'NOT_IMPLEMENTED') {
-          alert(`[Nhắc nhở]: Bạn phụ trách ${algo} chưa viết code trong file solvers/!`);
+          alert(`[Nhắc nhở]: Thành viên phụ trách ${algo} chưa viết code trong solvers/!`);
           document.getElementById('bm-time').textContent = 'Not implemented';
           return;
         }
@@ -427,19 +1298,54 @@
           setTimeout(() => play(0), 300);
         }
       } catch (e) {
-        alert("Lỗi kết nối tới Python Backend server: " + e.message);
+        console.error(e);
+        document.getElementById('bm-time').textContent = 'Error';
       }
     }
 
-    function setCam(mode) {
+    /* =========================================================================
+       10. GÓC NHÌN CAMERA VÀ TỰ ĐỘNG PHÓNG TO THÍCH ỨNG THEO STAGE
+       ========================================================================= */
+    function setCamera(mode) {
       document.querySelectorAll('.cam-btn').forEach(b => b.classList.remove('active'));
-      document.getElementById('cam-' + mode).classList.add('active');
-      if (mode === 'iso') { targetCamPos.set(-9, 19, 17); targetCamLook.set(7.5, 0, 4.5); }
-      else if (mode === 'cinematic') { targetCamPos.set(-3, 11, 18); targetCamLook.set(9.0, 1, 5.0); }
-      else if (mode === 'top') { targetCamPos.set(8.5, 26, 4.51); targetCamLook.set(8.5, 0, 4.5); }
+      const activeBtn = document.getElementById(`btn-cam-${mode}`);
+      if (activeBtn) activeBtn.classList.add('active');
+      currentCameraMode = mode;
+
+      const cols = currentGrid.length > 0 ? currentGrid[0].length : 10;
+      const rows = currentGrid.length > 0 ? currentGrid.length : 10;
+      const maxDim = Math.max(cols, rows);
+
+      if (mode === 'iso') {
+        camera.up.set(0, 1, 0);
+        targetCamLook.set((cols / 2) * TILE_SCALE, 0, (rows / 2) * TILE_SCALE);
+        const isoDist = Math.max(14, maxDim * CAM_ISO_DISTANCE_FACTOR);
+        targetCamPos.set((cols / 2) * TILE_SCALE - isoDist * 0.7, isoDist * 1.1, (rows / 2) * TILE_SCALE + isoDist * 0.8);
+      }
+      else if (mode === 'side') {
+        camera.up.set(0, 1, 0);
+        targetCamLook.set((cols / 2) * TILE_SCALE, 0, (rows / 2) * TILE_SCALE);
+        const sideDist = Math.max(16, maxDim * CAM_SIDE_DISTANCE_FACTOR);
+        targetCamPos.set((cols / 2) * TILE_SCALE, 10, (rows / 2) * TILE_SCALE + sideDist);
+      }
+      else if (mode === 'top') {
+        // Xoay 90 độ sang phải: Bàn cờ nằm ngang cực đẹp trên màn hình 16:9
+        camera.up.set(0, 0, -1);
+        targetCamLook.set((cols / 2) * TILE_SCALE + CAM_TOP_SHIFT_X, 0, (rows / 2) * TILE_SCALE);
+        
+        // Tự động phóng to thích ứng: Màn hẹp phóng to, màn dài tự động lùi ra
+        const topHeight = Math.max(CAM_TOP_MIN_HEIGHT, maxDim * CAM_TOP_ZOOM_FACTOR);
+        targetCamPos.set(targetCamLook.x + 0.01, topHeight, targetCamLook.z);
+      }
     }
 
+    // Điều khiển bàn phím
     window.addEventListener('keydown', (e) => {
+      if (document.getElementById('stage-modal').classList.contains('active')) {
+        if (e.key === 'Escape') closeStageModal();
+        return;
+      }
+      if (!inGameActive) return;
       if (e.key === 'ArrowUp' || e.key === 'w' || e.key === 'W') roll('UP');
       else if (e.key === 'ArrowDown' || e.key === 's' || e.key === 'S') roll('DOWN');
       else if (e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A') roll('LEFT');
@@ -447,12 +1353,33 @@
       else if (e.key === 'r' || e.key === 'R') resetStage();
     });
 
+    // Render loop
+    let orbitAngle = 0;
     function renderLoop() {
       requestAnimationFrame(renderLoop);
-      camera.position.lerp(targetCamPos, 0.05); camera.lookAt(targetCamLook);
+
+      if (!inGameActive) {
+        // Camera xoay nhẹ cinematic khi ở màn hình bắt đầu
+        orbitAngle += 0.002;
+        camera.position.x = 10 + Math.sin(orbitAngle) * 22;
+        camera.position.z = 10 + Math.cos(orbitAngle) * 22;
+        camera.position.y = 16;
+        camera.lookAt(8, 0, 5);
+      } else {
+        camera.position.lerp(targetCamPos, 0.05);
+        camera.lookAt(targetCamLook);
+      }
+
       renderer.render(scene, camera);
     }
-    syncState(); renderLoop();
+
+    // Khởi chạy ban đầu: Quét động toàn bộ danh sách stages từ server
+    fetchStagesList().then(() => {
+      const initialStage = loadedStages.length > 0 ? loadedStages[0].id : "stage_01.json";
+      loadStageFile(initialStage);
+    });
+    renderLoop();
   </script>
 </body>
+
 </html>
