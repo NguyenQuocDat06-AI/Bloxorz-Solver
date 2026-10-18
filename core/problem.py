@@ -2,6 +2,7 @@ from enum import Enum
 from typing import List, Tuple, Dict, Optional
 from .state import Orientation, BlockState, GameState
 from .board import Board, TileType, SwitchBehavior, Switch
+from .cost import transition_cost
 
 
 class Action(str, Enum):
@@ -249,8 +250,7 @@ class BloxorzProblem:
 
     def get_step_cost(self, state: GameState, action: Action, next_state: GameState) -> float:
         """
-        Hàm chi phí bước đi (dùng cho UCS và A*).
-        Mặc định là 1.0 (số bước tối thiểu).
-        Trường (người làm UCS) sẽ ghi đè hoặc tùy biến hàm này theo thiết kế của mình.
+        Cost risk_v1 dùng chung cho UCS/A*: di chuyển 1 + 2F + 0.5B,
+        đổi cube 0.25. Chỉ gọi với transition hợp lệ; xem SPEC-ucs.md §5.
         """
-        return 1.0
+        return transition_cost(self.board, state, action, next_state)
