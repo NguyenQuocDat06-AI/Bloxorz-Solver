@@ -60,6 +60,8 @@ class BloxorzServerHandler(http.server.SimpleHTTPRequestHandler):
                     solver = BFSSolver()
                 elif algo_name == "DFS":
                     solver = DFSSolver()
+                elif algo_name == "IDS":
+                    solver = DFSSolver(use_ids=True)
                 elif algo_name == "UCS":
                     solver = UCSSolver()
                 elif algo_name == "ASTAR" or algo_name == "A*":
