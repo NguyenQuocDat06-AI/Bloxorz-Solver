@@ -20,7 +20,7 @@ Yêu cầu theo đề bài:
 =============================================================================
 """
 import heapq
-from typing import Dict, List, Tuple
+from typing import Dict
 from .base import BaseSolver, SearchResult
 from core.problem import BloxorzProblem, Action
 from core.state import GameState, Orientation
@@ -53,9 +53,27 @@ class AStarSolver(BaseSolver):
             
         return h
         """
-        # ==================== QUÂN VIẾT HEURISTIC TẠI ĐÂY ====================
-        raise NotImplementedError("Quân hãy thiết kế và cài đặt hàm heuristic h(n)!")
-        # =====================================================================
+        block = state.block
+        goal_r, goal_c = problem.board.goal_pos
+        cells = block.get_occupied_cells()
+
+        # Một bước lăn có thể làm một ô của khối dịch chuyển nhiều nhất hai
+        # hàng/cột. Vì vậy khoảng cách Manhattan nhỏ nhất đến goal chia cho 2
+        # là một cận dưới của số bước còn lại.
+        min_manhattan = min(
+            abs(r - goal_r) + abs(c - goal_c) for r, c in cells
+        )
+        distance_lower_bound = min_manhattan / 2.0
+
+        # Goal chỉ hợp lệ khi khối đứng trên ô đích. Một khối đang nằm hoặc
+        # đang tách chắc chắn cần ít nhất một thao tác nữa để đạt tư thế đứng.
+        orientation_lower_bound = (
+            1.0 if block.orientation != Orientation.STAND else 0.0
+        )
+
+        # Dùng max thay vì cộng: hai cận dưới có thể cùng tính đến một thao
+        # tác lăn, nên cộng chúng sẽ không còn bảo đảm admissible.
+        return max(distance_lower_bound, orientation_lower_bound)
 
     def _search(self, problem: BloxorzProblem) -> SearchResult:
         """
@@ -111,6 +129,63 @@ class AStarSolver(BaseSolver):
         5. Nếu không tìm thấy đường đi:
            -> Trả về SearchResult(status="NOT_FOUND", path=[], expanded_nodes=expanded_nodes)
         """
-        # ==================== QUÂN VIẾT THUẬT TOÁN A* TẠI ĐÂY ====================
-        raise NotImplementedError("Quân hãy cài đặt thuật toán A* theo gợi ý ở docstring!")
-        # ========================================================================
+        start_state = problem.get_initial_state()
+        start_h = self.heuristic(problem, start_state)
+
+        # counter là tie-breaker để heap không phải so sánh GameState khi
+        # nhiều phần tử có cùng f-score.
+        counter = 0
+        frontier = [(start_h, counter, 0.0, start_state, [])]
+        best_cost: Dict[GameState, float] = {start_state: 0.0}
+        expanded_nodes = 0
+
+        while frontier:
+            f_score, _, current_cost, current_state, path = heapq.heappop(frontier)
+
+            # Có thể tồn tại nhiều bản ghi cho cùng một state trong heap.
+            # Chỉ bản ghi có g tốt nhất mới được mở rộng.
+            if current_cost > best_cost.get(current_state, float("inf")):
+                continue
+
+            expanded_nodes += 1
+            if problem.is_goal(current_state):
+                return SearchResult(
+                    status="FOUND",
+                    path=path,
+                    expanded_nodes=expanded_nodes,
+                    cost=current_cost,
+                )
+
+            for action in problem.get_actions(current_state):
+                next_state = problem.get_successor(current_state, action)
+                if next_state is None:
+                    continue
+
+                step_cost = problem.get_step_cost(
+                    current_state, action, next_state
+                )
+                new_cost = current_cost + step_cost
+
+                if new_cost >= best_cost.get(next_state, float("inf")):
+                    continue
+
+                best_cost[next_state] = new_cost
+                counter += 1
+                new_f_score = new_cost + self.heuristic(problem, next_state)
+                heapq.heappush(
+                    frontier,
+                    (
+                        new_f_score,
+                        counter,
+                        new_cost,
+                        next_state,
+                        path + [action.value],
+                    ),
+                )
+
+        return SearchResult(
+            status="NOT_FOUND",
+            path=[],
+            expanded_nodes=expanded_nodes,
+            cost=0.0,
+        )
