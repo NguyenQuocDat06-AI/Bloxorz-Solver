@@ -47,3 +47,8 @@ Thumbs.db
 benchmarks_output/
 *.log
 scratch/
+
+# Local documentation: keep on this machine, exclude from Git
+/docs/
+*.[mM][dD]
+!README.md
