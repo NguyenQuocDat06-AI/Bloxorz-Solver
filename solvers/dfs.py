@@ -39,7 +39,7 @@ class DFSSolver(BaseSolver):
                             giúp DFS giảm đáng kể số bước đi vòng và tăng tốc độ tìm kiếm.
     """
 
-    def __init__(self, use_ids: bool = False, max_depth: int = 50, order_moves: bool = True):
+    def __init__(self, use_ids: bool = False, max_depth: int = 50, order_moves: bool = False):
         name = "Iterative Deepening Search (IDS)" if use_ids else "Depth-First Search (DFS)"
         super().__init__(name=name)
         self.use_ids = use_ids
