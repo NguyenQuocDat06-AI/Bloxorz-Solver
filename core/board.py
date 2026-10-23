@@ -21,6 +21,7 @@ class SwitchBehavior(str, Enum):
     TOGGLE = "toggle"             # Đảo trạng thái cầu (Đóng <-> Mở)
     PERMANENT_OPEN = "perm_open"   # Luôn mở cầu sau khi kích hoạt
     PERMANENT_CLOSE = "perm_close" # Luôn đóng cầu sau khi kích hoạt
+    PERMANENT = "permanent"       # Chuẩn Section 2.5: Cố định trạng thái mở sau khi kích hoạt
 
 
 @dataclass
@@ -95,7 +96,11 @@ class Board:
         if "switches" in data:
             for sw_info in data["switches"]:
                 sw_type = TileType[sw_info["type"].upper()]
-                behavior = SwitchBehavior(sw_info.get("behavior", "toggle"))
+                raw_beh = sw_info.get("behavior", "toggle").lower()
+                if raw_beh == "permanent":
+                    behavior = SwitchBehavior.PERMANENT
+                else:
+                    behavior = SwitchBehavior(raw_beh)
                 linked = sw_info.get("linked_bridges", [])
                 targets = None
                 if "split_targets" in sw_info:

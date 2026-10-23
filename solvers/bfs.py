@@ -24,6 +24,16 @@ class BFSSolver(BaseSolver):
     def _search(self, problem: BloxorzProblem) -> SearchResult:
         start_state = problem.get_initial_state()
 
+        # Kiểm tra tính hợp lệ của trạng thái xuất phát (tránh start nằm trên void hoặc gạch vỡ)
+        if not problem.is_valid_state(start_state):
+            return SearchResult(
+                status="NOT_FOUND",
+                path=[],
+                solution_length=0,
+                expanded_nodes=0,
+                cost=0.0
+            )
+
         # Kiểm tra nếu trạng thái bắt đầu đã là đích
         if problem.is_goal(start_state):
             return SearchResult(

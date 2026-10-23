@@ -2200,7 +2200,7 @@
       drawRadar();
     }
 
-    function triggerSplit(targets) {
+    function triggerSplit(targets, onComplete = null) {
       if (gameState !== "PLAYING" || isRolling) return;
       isRolling = true;
       gameState = "SPLITTING";
@@ -2259,6 +2259,9 @@
 
           syncBlockTransform();
           checkGameStatus([[targets[0][0], targets[0][1]], [targets[1][0], targets[1][1]]]);
+          if (onComplete) {
+            setTimeout(onComplete, 120);
+          }
         }
       }
       requestAnimationFrame(animSplit);
@@ -2447,14 +2450,14 @@
           blockMaster.quaternion.identity();
           syncBlockTransform();
           isRolling = false;
-          checkGameStatus();
-          if (onComplete) onComplete();
+          const wasSplit = checkGameStatus(null, onComplete);
+          if (!wasSplit && onComplete) onComplete();
         }
       }
       requestAnimationFrame(animateRoll);
     }
 
-    function checkGameStatus(justMovedCells = null) {
+    function checkGameStatus(justMovedCells = null, onComplete = null) {
       const occupied = [];
       if (blockOrient === 0) occupied.push([blockR, blockC]);
       else if (blockOrient === 1) { occupied.push([blockR, blockC]); occupied.push([blockR, blockC + 1]); }
@@ -2501,7 +2504,7 @@
           else setTimeout(resetStage, 600);
         }
         drop();
-        return;
+        return false;
       }
 
       // Khối tiếp đất an toàn: Kích hoạt công tắc mềm (4) hoặc công tắc nặng (5)
@@ -2535,7 +2538,7 @@
           else setTimeout(resetStage, 600);
         }
         dropSwitch();
-        return;
+        return false;
       }
 
       // Kiểm tra ô tách khối (SPLIT SWITCH - Ô 6): Chỉ kích hoạt khi khối ĐỨNG THẲNG (1x1x2)
@@ -2548,8 +2551,8 @@
           if (!targets) {
             targets = [[blockR, Math.max(0, blockC - 1)], [blockR, Math.min(cols - 1, blockC + 1)]];
           }
-          triggerSplit(targets);
-          return;
+          triggerSplit(targets, onComplete);
+          return true;
         }
       }
 
@@ -2566,6 +2569,7 @@
         }
         dropGoal();
       }
+      return false;
     }
 
     /* =========================================================================
