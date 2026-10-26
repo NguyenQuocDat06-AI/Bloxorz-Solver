@@ -59,7 +59,7 @@ def run_benchmark():
 
     solvers = [
         ("BFS (Phúc)", BFSSolver()),
-        ("DFS/IDS (Đức)", DFSSolver()),
+        ("IDS (Đức)", DFSSolver(use_ids=True)),
         ("UCS (Trường)", UCSSolver()),
         ("A* (Quân)", AStarSolver()),
     ]
