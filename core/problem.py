@@ -236,7 +236,10 @@ class BloxorzProblem:
                 can_trigger = False
                 if sw.switch_type == TileType.SOFT_SWITCH:
                     can_trigger = True
-                elif sw.switch_type == TileType.HEAVY_SWITCH:
+                elif sw.switch_type in (TileType.HEAVY_SWITCH, TileType.SPLIT_SWITCH):
+                    # Heavy và split switch đều chỉ được kích hoạt khi khối
+                    # đứng thẳng. Split switch vẫn phải cập nhật bridge trước
+                    # khi khối được dịch chuyển/tách ở bước kế tiếp.
                     can_trigger = (block.orientation == Orientation.STAND)
 
                 if can_trigger:
