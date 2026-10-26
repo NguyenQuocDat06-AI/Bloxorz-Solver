@@ -1,139 +1,104 @@
 """
-=============================================================================
+======================================================================
 THUẬT TOÁN: A* HEURISTIC SEARCH
 NGƯỜI PHỤ TRÁCH: QUÂN
-=============================================================================
+======================================================================
 Yêu cầu theo đề bài:
 1. Sử dụng hàm đánh giá f(n) = g(n) + h(n) với hàng đợi ưu tiên min-heap.
-2. ĐẶC BIỆT QUAN TRỌNG:
-   - Quân phải tự thiết kế hàm Heuristic h(n) ước lượng chi phí còn lại từ trạng thái hiện tại đến đích.
-   - Trong Báo cáo (Report.pdf), Quân phải trình bày lập luận và CHỨNG MINH tính:
-     + Chấp nhận được (Admissible): h(n) <= h*(n) (không bao giờ ước lượng vượt quá chi phí thực tế).
-     + Nhất quán (Consistent / Monotonic): h(n) <= c(n, a, n') + h(n').
-   - Lưu ý: h(n) phải tương thích với hàm chi phí g(n) do Trường thiết kế ở bài UCS.
-3. Các ý tưởng Heuristic gợi ý từ giảng viên (có thể kết hợp):
-   - Ý tưởng 1: Khoảng cách Manhattan từ khối đến ô đích chia 2:
-     dist = (|r - goal_r| + |c - goal_c|) / 2.0 (vì mỗi bước lăn khối đi được tối đa 2 ô).
-   - Ý tưởng 2: Phạt tư thế (Orientation Penalty): Nếu khối không đứng (Orientation != STAND),
-     nó bắt buộc phải tốn thêm ít nhất 1 bước lật để dựng đứng vào lỗ đích (+1 penalty).
-   - Ý tưởng 3: Khoảng cách bài toán nới lỏng (Relaxed problem distance).
-=============================================================================
+2. Tự thiết kế hàm Heuristic h(n) để ước lượng chi phí còn lại từ trạng
+   thái hiện tại đến trạng thái đích.
+3. Heuristic cần phù hợp với hàm chi phí g(n) và nên đảm bảo tính
+   admissible, tức là không được ước lượng lớn hơn chi phí thực tế.
+4. Trạng thái tìm kiếm phải bao gồm vị trí, tư thế của khối và trạng thái
+   đóng/mở của các bridge.
+
+Các ý tưởng được sử dụng trong heuristic:
+- Khoảng cách Manhattan từ khối đến ô đích, chia cho 2 vì một lần lăn có
+  thể làm khối dịch chuyển tối đa hai ô.
+- Nếu khối chưa đứng, cộng thêm cận dưới cho việc thay đổi tư thế.
+- Nếu màn chơi có Split Switch, sử dụng h(n) = 0 vì teleport có thể đưa
+  khối tới vị trí rất xa chỉ trong một bước.
+======================================================================
 """
 import heapq
 from typing import Dict
 from .base import BaseSolver, SearchResult
 from core.problem import BloxorzProblem, Action
 from core.state import GameState, Orientation
+from core.board import TileType
 
 
 class AStarSolver(BaseSolver):
+    """
+    Bộ giải Bloxorz bằng thuật toán A*.
+
+    A* lựa chọn trạng thái có tổng f(n) nhỏ nhất, trong đó:
+    - g(n): chi phí từ trạng thái bắt đầu đến trạng thái hiện tại.
+    - h(n): chi phí ước lượng từ trạng thái hiện tại đến đích.
+    """
+
     def __init__(self):
         super().__init__(name="A* Search")
 
     def heuristic(self, problem: BloxorzProblem, state: GameState) -> float:
         """
-        TODO (Quân): Thiết kế hàm heuristic h(n) tại đây.
-        
-        Gợi ý cài đặt:
-        --------------
-        block = state.block
-        goal_r, goal_c = problem.board.goal_pos
-        
-        # 1. Tính khoảng cách Manhattan từ khối đến đích
-        # (Nếu khối nằm, có thể lấy trung bình cộng tọa độ hoặc tọa độ ô gần nhất)
-        cells = block.get_occupied_cells()
-        min_manhattan = min(abs(r - goal_r) + abs(c - goal_c) for r, c in cells)
-        
-        # Vì mỗi bước lăn khối có thể dịch chuyển tối đa 2 ô, nên chia 2 là một lower bound hợp lệ:
-        h = min_manhattan / 2.0
-        
-        # 2. Phạt tư thế: Nếu chưa đứng thẳng, chắc chắn cần thêm ít nhất 1 bước lật để đứng vào đích
-        if block.orientation != Orientation.STAND:
-            h += 1.0
-            
-        return h
+        Tính giá trị heuristic h(n) cho một trạng thái.
+
+        Với màn chơi bình thường, tôi dùng khoảng cách Manhattan nhỏ nhất
+        giữa các ô mà khối đang chiếm giữ và ô đích. Khoảng cách này được
+        chia cho 2 vì một lần lăn có thể dịch chuyển khối tối đa hai ô.
+
+        Khi có Split Switch, khối có thể teleport tới một vị trí xa hơn rất
+        nhiều. Khi đó Manhattan không còn là cận dưới an toàn, nên tôi dùng
+        h(n) = 0 để giữ tính đúng đắn của A*.
         """
         block = state.block
+
+        # Khi có Split Switch, teleport có thể rút ngắn đường đi rất nhiều.
+        # Vì vậy tôi dùng h = 0 để giữ heuristic luôn admissible và consistent.
+        if any(
+            sw.switch_type == TileType.SPLIT_SWITCH
+            for sw in problem.board.switches
+        ):
+            return 0.0
+
         goal_r, goal_c = problem.board.goal_pos
         cells = block.get_occupied_cells()
 
-        # Một bước lăn có thể làm một ô của khối dịch chuyển nhiều nhất hai
-        # hàng/cột. Vì vậy khoảng cách Manhattan nhỏ nhất đến goal chia cho 2
-        # là một cận dưới của số bước còn lại.
+        # Mỗi lần lăn có thể làm một ô của khối dịch chuyển tối đa hai ô.
+        # Do đó, Manhattan nhỏ nhất chia cho 2 là một cận dưới hợp lệ.
         min_manhattan = min(
             abs(r - goal_r) + abs(c - goal_c) for r, c in cells
         )
         distance_lower_bound = min_manhattan / 2.0
 
-        # Goal chỉ hợp lệ khi khối đứng trên ô đích. Một khối đang nằm hoặc
-        # đang tách chắc chắn cần ít nhất một thao tác nữa để đạt tư thế đứng.
+        # Khối chỉ thắng khi đứng trên goal, nên khối đang nằm hoặc đang tách
+        # chắc chắn còn cần ít nhất một thao tác để thay đổi tư thế/trạng thái.
         orientation_lower_bound = (
             1.0 if block.orientation != Orientation.STAND else 0.0
         )
 
-        # Dùng max thay vì cộng: hai cận dưới có thể cùng tính đến một thao
-        # tác lăn, nên cộng chúng sẽ không còn bảo đảm admissible.
+        # Tôi dùng max thay vì cộng vì hai cận dưới có thể đang tính trùng
+        # cùng một thao tác lăn. Cộng lại sẽ không còn chắc chắn admissible.
         return max(distance_lower_bound, orientation_lower_bound)
 
     def _search(self, problem: BloxorzProblem) -> SearchResult:
         """
-        TODO (Quân): Cài đặt thuật toán A* Search tại đây.
-        
-        Gợi ý các bước thực hiện:
-        -------------------------
-        1. Lấy start_state = problem.get_initial_state()
-        2. Khởi tạo hàng đợi ưu tiên pq:
-           Mỗi phần tử trong heap lưu: (f_score, tie_breaker_id, g_score, current_state, path)
-           
-           h_start = self.heuristic(problem, start_state)
-           f_start = 0.0 + h_start
-           pq = []
-           heapq.heappush(pq, (f_start, 0, 0.0, start_state, []))
-           
-        3. Khởi tạo g_score_map lưu chi phí g tốt nhất đã biết đến từng state:
-           g_scores: Dict[GameState, float] = {start_state: 0.0}
-           expanded_nodes = 0
-           counter = 0
+        Cài đặt quy trình tìm kiếm A*.
 
-        4. Vòng lặp while pq:
-           a. Lấy node có f_score nhỏ nhất:
-              f, _, g, curr_state, path = heapq.heappop(pq)
-              
-           b. Nếu g > g_scores.get(curr_state, float('inf')):
-              continue  # Đã có đường đi g ngắn hơn đến node này
-              
-           c. expanded_nodes += 1
-           
-           d. Kiểm tra nếu problem.is_goal(curr_state):
-              -> Trả về SearchResult(
-                     status="FOUND",
-                     path=path,
-                     expanded_nodes=expanded_nodes,
-                     cost=g
-                 )
-                 
-           e. Mở rộng các trạng thái kế tiếp:
-              for action in problem.get_actions(curr_state):
-                  next_state = problem.get_successor(curr_state, action)
-                  if next_state is not None:
-                      step_cost = problem.get_step_cost(curr_state, action, next_state)
-                      tentative_g = g + step_cost
-                      
-                      if tentative_g < g_scores.get(next_state, float('inf')):
-                          g_scores[next_state] = tentative_g
-                          h = self.heuristic(problem, next_state)
-                          f = tentative_g + h
-                          counter += 1
-                          heapq.heappush(pq, (f, counter, tentative_g, next_state, path + [action.value]))
-                          
-        5. Nếu không tìm thấy đường đi:
-           -> Trả về SearchResult(status="NOT_FOUND", path=[], expanded_nodes=expanded_nodes)
+        Quy trình xử lý:
+        1. Khởi tạo trạng thái bắt đầu và đưa vào min-heap.
+        2. Lấy trạng thái có f(n) nhỏ nhất ra khỏi frontier.
+        3. Nếu trạng thái hiện tại là đích thì trả về lời giải.
+        4. Sinh các trạng thái kế tiếp bằng những hành động hợp lệ.
+        5. Chỉ cập nhật một trạng thái khi tìm được chi phí g(n) tốt hơn.
+        6. Nếu frontier rỗng mà chưa gặp đích thì bài toán không có lời giải.
         """
         start_state = problem.get_initial_state()
         start_h = self.heuristic(problem, start_state)
 
-        # counter là tie-breaker để heap không phải so sánh GameState khi
-        # nhiều phần tử có cùng f-score.
+        # counter được dùng để phân biệt các phần tử có cùng f-score. Nhờ đó
+        # heap không cần phải so sánh trực tiếp hai đối tượng GameState.
         counter = 0
         frontier = [(start_h, counter, 0.0, start_state, [])]
         best_cost: Dict[GameState, float] = {start_state: 0.0}
@@ -142,8 +107,8 @@ class AStarSolver(BaseSolver):
         while frontier:
             f_score, _, current_cost, current_state, path = heapq.heappop(frontier)
 
-            # Có thể tồn tại nhiều bản ghi cho cùng một state trong heap.
-            # Chỉ bản ghi có g tốt nhất mới được mở rộng.
+            # Một trạng thái có thể xuất hiện nhiều lần trong heap. Tôi chỉ
+            # mở rộng bản ghi có chi phí tốt nhất đã biết.
             if current_cost > best_cost.get(current_state, float("inf")):
                 continue
 
