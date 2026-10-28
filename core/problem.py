@@ -82,6 +82,9 @@ class BloxorzProblem:
             if self.board.grid[r][c] == TileType.FRAGILE:
                 return False
         elif block.orientation == Orientation.SPLIT:
+            # Hai khối con 1x1x1 không thể chiếm cùng một ô tọa độ (va chạm vật lý)
+            if (block.r, block.c) == (block.r2, block.c2):
+                return False
             for r, c in cells:
                 if self.board.grid[r][c] == TileType.FRAGILE:
                     return False
@@ -120,7 +123,7 @@ class BloxorzProblem:
             return None
 
         # 3. Kích hoạt công tắc & cập nhật trạng thái cầu
-        new_bridges = self._apply_switches(new_block, state.bridges)
+        new_bridges = self._apply_switches(new_block, state.bridges, prev_block=block)
 
         # 4. Kiểm tra xem sau khi dẫm công tắc, có rơi vào ô tách khối SPLIT_SWITCH không
         final_block = self._check_split_switch(new_block)
@@ -203,22 +206,40 @@ class BloxorzProblem:
                 return BlockState(r=r2, c=c2, orientation=Orientation.VERTICAL)
         return None
 
-    def _apply_switches(self, block: BlockState, bridges_state: Tuple[Tuple[str, bool], ...]) -> Tuple[Tuple[str, bool], ...]:
+    def _apply_switches(
+        self,
+        block: BlockState,
+        bridges_state: Tuple[Tuple[str, bool], ...],
+        prev_block: Optional[BlockState] = None
+    ) -> Tuple[Tuple[str, bool], ...]:
         """Kích hoạt công tắc nếu khối thỏa mãn điều kiện đạp lên."""
         bridge_dict = dict(bridges_state)
-        cells = block.get_occupied_cells()
 
-        for r, c in cells:
+        # Nếu đang ở trạng thái SPLIT và vừa di chuyển 1 khối con:
+        # Chỉ khối con vừa di chuyển (active_cube của prev_block) mới có khả năng kích hoạt công tắc.
+        # Khối con đứng yên không được re-trigger lặp lại.
+        if prev_block is not None and prev_block.orientation == Orientation.SPLIT and block.orientation == Orientation.SPLIT:
+            if prev_block.active_cube == 1:
+                trigger_cells = [(block.r, block.c)]
+            else:
+                trigger_cells = [(block.r2, block.c2)]
+        else:
+            trigger_cells = block.get_occupied_cells()
+
+        for r, c in trigger_cells:
             if (r, c) in self.board.switch_map:
                 sw = self.board.switch_map[(r, c)]
 
                 # Kiểm tra điều kiện kích hoạt:
-                # - SOFT: Đè lên ở bất kỳ tư thế nào
-                # - HEAVY: Phải ĐỨNG thẳng (khối 1x1x2)
+                # - SOFT: Đè lên ở bất kỳ tư thế nào (kể cả khối con 1x1x1)
+                # - HEAVY: Phải ĐỨNG thẳng (khối 1x1x2) - khối con 1x1x1 không kích hoạt được
                 can_trigger = False
                 if sw.switch_type == TileType.SOFT_SWITCH:
                     can_trigger = True
-                elif sw.switch_type == TileType.HEAVY_SWITCH:
+                elif sw.switch_type in (TileType.HEAVY_SWITCH, TileType.SPLIT_SWITCH):
+                    # Heavy và split switch đều chỉ được kích hoạt khi khối
+                    # đứng thẳng. Split switch vẫn phải cập nhật bridge trước
+                    # khi khối được dịch chuyển/tách ở bước kế tiếp.
                     can_trigger = (block.orientation == Orientation.STAND)
 
                 if can_trigger:
@@ -226,7 +247,7 @@ class BloxorzProblem:
                         if b_id in bridge_dict:
                             if sw.behavior == SwitchBehavior.TOGGLE:
                                 bridge_dict[b_id] = not bridge_dict[b_id]
-                            elif sw.behavior == SwitchBehavior.PERMANENT_OPEN:
+                            elif sw.behavior in (SwitchBehavior.PERMANENT_OPEN, SwitchBehavior.PERMANENT):
                                 bridge_dict[b_id] = True
                             elif sw.behavior == SwitchBehavior.PERMANENT_CLOSE:
                                 bridge_dict[b_id] = False

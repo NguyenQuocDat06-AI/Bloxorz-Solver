@@ -1,9 +1,24 @@
 import os
+import sys
 import json
 import http.server
 import socketserver
 import webbrowser
 from urllib.parse import parse_qs, urlparse
+
+# Đảm bảo Python luôn nhận diện được thư mục gốc của project (chứa core/ và solvers/)
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+PROJECT_DIR = os.path.dirname(BASE_DIR)
+if PROJECT_DIR not in sys.path:
+    sys.path.insert(0, PROJECT_DIR)
+
+# Hỗ trợ hiển thị ký tự Unicode tiếng Việt trên terminal Windows PowerShell
+if sys.platform == "win32":
+    try:
+        sys.stdout.reconfigure(encoding="utf-8")
+        sys.stderr.reconfigure(encoding="utf-8")
+    except Exception:
+        pass
 
 from core.board import Board
 from core.problem import BloxorzProblem
@@ -13,8 +28,6 @@ from solvers.ucs import UCSSolver
 from solvers.astar import AStarSolver
 
 PORT = 8080
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-PROJECT_DIR = os.path.dirname(BASE_DIR)
 STAGES_DIR = os.path.join(PROJECT_DIR, "stages")
 
 
@@ -30,13 +43,68 @@ class BloxorzServerHandler(http.server.SimpleHTTPRequestHandler):
     def do_GET(self):
         parsed = urlparse(self.path)
 
-        if parsed.path == "/api/stages":
-            # API: Lấy danh sách các màn chơi có sẵn trong thư mục stages/
+        if parsed.path.startswith("/stages/"):
+            # API / Static: Phục vụ trực tiếp các file JSON màn chơi trong thư mục stages/
+            stage_file = os.path.basename(parsed.path)
+            stage_path = os.path.join(STAGES_DIR, stage_file)
+            if os.path.exists(stage_path) and stage_file.endswith(".json"):
+                with open(stage_path, "rb") as f:
+                    content = f.read()
+                self.send_response(200)
+                self.send_header("Content-Type", "application/json; charset=utf-8")
+                self.send_header("Content-Length", str(len(content)))
+                self.send_header("Access-Control-Allow-Origin", "*")
+                self.end_headers()
+                self.wfile.write(content)
+            else:
+                self._send_json({"error": f"Stage {stage_file} not found"}, status=404)
+            return
+
+        elif parsed.path == "/api/stages":
+            # API: Quét động toàn bộ các file JSON màn chơi trong thư mục stages/
             stages = []
             if os.path.exists(STAGES_DIR):
                 for f in sorted(os.listdir(STAGES_DIR)):
                     if f.endswith(".json"):
-                        stages.append(f)
+                        fpath = os.path.join(STAGES_DIR, f)
+                        try:
+                            with open(fpath, "r", encoding="utf-8") as sf:
+                                sdata = json.load(sf)
+                            name = sdata.get("name", f.replace(".json", "").replace("_", " ").title())
+                            diff = str(sdata.get("difficulty", "medium")).lower()
+                            
+                            # Tự động nhận diện cơ chế đặc trưng từ ma trận tile
+                            grid = sdata.get("grid", [])
+                            tiles = {t for row in grid for t in row} if grid else set()
+                            mechs = []
+                            if 2 in tiles:
+                                mechs.append("Gạch vỡ")
+                            if 3 in tiles or sdata.get("bridges"):
+                                mechs.append("Cầu nối")
+                            if 4 in tiles or 5 in tiles or sdata.get("switches"):
+                                mechs.append("Công tắc")
+                            if 6 in tiles:
+                                mechs.append("Tách khối")
+                            if not mechs:
+                                mechs.append("Cơ bản")
+
+                            stages.append({
+                                "id": f,
+                                "name": name,
+                                "diff": diff,
+                                "mech": " + ".join(mechs),
+                                "rows": len(grid),
+                                "cols": len(grid[0]) if grid else 0
+                            })
+                        except Exception:
+                            stages.append({
+                                "id": f,
+                                "name": f.replace(".json", "").title(),
+                                "diff": "medium",
+                                "mech": "Cơ bản",
+                                "rows": 10,
+                                "cols": 10
+                            })
             self._send_json({"stages": stages})
             return
 
@@ -60,6 +128,8 @@ class BloxorzServerHandler(http.server.SimpleHTTPRequestHandler):
                     solver = BFSSolver()
                 elif algo_name == "DFS":
                     solver = DFSSolver()
+                elif algo_name == "IDS":
+                    solver = DFSSolver(use_ids=True)
                 elif algo_name == "UCS":
                     solver = UCSSolver()
                 elif algo_name == "ASTAR" or algo_name == "A*":

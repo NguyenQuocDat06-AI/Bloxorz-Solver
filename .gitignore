@@ -48,7 +48,11 @@ benchmarks_output/
 *.log
 scratch/
 
-# Local specifications, tasks, and tests
-SPEC-ucs.md
+# Local documentation: keep on this machine, exclude from Git
+/docs/
+*.[mM][dD]
+!README.md
+
+# Local tasks and tests
 tasks/
 tests/

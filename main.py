@@ -35,6 +35,7 @@ def run_cli_solve(stage_file: str, algo_name: str):
     solvers = {
         "BFS": BFSSolver,
         "DFS": DFSSolver,
+        "IDS": lambda: DFSSolver(use_ids=True),
         "UCS": UCSSolver,
         "ASTAR": AStarSolver,
         "A*": AStarSolver
@@ -42,7 +43,7 @@ def run_cli_solve(stage_file: str, algo_name: str):
 
     algo_key = algo_name.upper()
     if algo_key not in solvers:
-        print(f"❌ Thuật toán không hợp lệ: {algo_name}. Hãy chọn: BFS, DFS, UCS, ASTAR.")
+        print(f"❌ Thuật toán không hợp lệ: {algo_name}. Hãy chọn: BFS, DFS, IDS, UCS, ASTAR.")
         return
 
     solver = solvers[algo_key]()
@@ -72,7 +73,7 @@ def main():
     parser.add_argument("--web", action="store_true", help="Khởi động giao diện Web 3D Studio")
     parser.add_argument("--solve", action="store_true", help="Chạy chế độ tìm kiếm giải bằng CLI")
     parser.add_argument("--stage", type=str, default="stages/stage_01.json", help="Đường dẫn file stage JSON")
-    parser.add_argument("--algo", type=str, default="BFS", help="Thuật toán (BFS, DFS, UCS, ASTAR)")
+    parser.add_argument("--algo", type=str, default="BFS", help="Thuật toán (BFS, DFS, IDS, UCS, ASTAR)")
     parser.add_argument("--benchmark", action="store_true", help="Chạy toàn bộ benchmark trên các màn chơi")
 
     args = parser.parse_args()
