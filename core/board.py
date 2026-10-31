@@ -5,7 +5,7 @@ from dataclasses import dataclass
 
 
 class TileType(IntEnum):
-    """Phân loại các ô trên mặt sàn theo đề bài Project 1."""
+    """Phân loại các ô trên mặt sàn"""
     VOID = 0           # Khoảng trống / Vực thẳm (rơi = thua)
     FLOOR = 1          # Ô bình thường, chịu được khối ở mọi tư thế
     FRAGILE = 2        # Gạch vỡ màu cam (chỉ chịu được khi khối nằm, đứng lên sẽ vỡ)

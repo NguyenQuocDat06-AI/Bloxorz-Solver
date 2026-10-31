@@ -1,0 +1,294 @@
+/* =========================================================================
+   4. GIAO DIỆN IN-GAME (HUD HEADER & SIDEBAR)
+   ========================================================================= */
+.brand-dock {
+  position: absolute;
+  top: 30px;
+  left: 36px;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.brand-title {
+  font-size: 30px;
+  font-weight: 800;
+  letter-spacing: -0.5px;
+  background: linear-gradient(135deg, #ffffff 30%, #94a3b8 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.brand-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11.5px;
+  font-weight: 700;
+  color: var(--cyan-glow);
+  background: rgba(0, 242, 254, 0.08);
+  border: 1px solid rgba(0, 242, 254, 0.3);
+  padding: 5px 14px;
+  border-radius: 999px;
+}
+
+.pulse-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--cyan-glow);
+  box-shadow: 0 0 10px var(--cyan-glow);
+}
+
+.hud-sidebar {
+  position: absolute;
+  top: 30px;
+  right: 36px;
+  bottom: 30px;
+  width: 380px;
+  background: var(--panel-surface);
+  backdrop-filter: blur(30px);
+  border: 1px solid var(--panel-border);
+  border-radius: 26px;
+  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.75);
+  z-index: 10;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  overflow-y: auto;
+}
+
+.hud-sidebar::-webkit-scrollbar {
+  display: none;
+}
+
+.card {
+  background: rgba(255, 255, 255, 0.035);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 18px;
+  padding: 15px 18px;
+}
+
+.card-head {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1.2px;
+  color: var(--text-sub);
+  margin-bottom: 10px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.telemetry-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.telemetry-row:last-child {
+  margin-bottom: 0;
+}
+
+.telemetry-key {
+  font-size: 13px;
+  color: var(--text-sub);
+}
+
+.telemetry-val {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 14px;
+  font-weight: 700;
+  color: #fff;
+}
+
+.counter-hero {
+  font-size: 26px;
+  color: var(--cyan-glow);
+}
+
+.status-badge {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  font-weight: 800;
+  padding: 4px 12px;
+  border-radius: 6px;
+}
+
+.status-playing {
+  background: rgba(0, 242, 254, 0.12);
+  border: 1px solid var(--cyan-glow);
+  color: var(--cyan-glow);
+}
+
+.status-won {
+  background: rgba(16, 185, 129, 0.15);
+  border: 1px solid var(--emerald-glow);
+  color: var(--emerald-glow);
+}
+
+.status-fell {
+  background: rgba(244, 63, 94, 0.15);
+  border: 1px solid var(--rose-glow);
+  color: var(--rose-glow);
+}
+
+/* Solver buttons */
+.solver-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.solver-btn {
+  width: 100%;
+  padding: 12px 14px;
+  border-radius: 12px;
+  border: 1px solid transparent;
+  color: #fff;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  transition: all 0.2s;
+}
+
+.solver-btn-bfs {
+  background: linear-gradient(135deg, rgba(37, 99, 235, 0.35), rgba(29, 78, 216, 0.2));
+  border-color: rgba(59, 130, 246, 0.4);
+}
+
+.solver-btn-dfs {
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.35), rgba(5, 150, 105, 0.2));
+  border-color: rgba(16, 185, 129, 0.4);
+}
+
+.solver-btn-ucs {
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.35), rgba(217, 119, 6, 0.2));
+  border-color: rgba(245, 158, 11, 0.4);
+}
+
+.solver-btn-astar {
+  background: linear-gradient(135deg, rgba(139, 92, 246, 0.4), rgba(124, 58, 237, 0.25));
+  border-color: rgba(167, 139, 250, 0.5);
+}
+
+.solver-btn:hover {
+  transform: translateY(-2px);
+  filter: brightness(1.15);
+}
+
+.tag-badge {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 5px;
+  background: rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.cam-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+.cam-btn {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
+  color: var(--text-sub);
+  font-size: 11.5px;
+  font-weight: 600;
+  padding: 8px 4px;
+  cursor: pointer;
+  text-align: center;
+  transition: all 0.2s;
+}
+
+.cam-btn.active,
+.cam-btn:hover {
+  background: rgba(0, 242, 254, 0.15);
+  border-color: var(--cyan-glow);
+  color: #fff;
+}
+
+.btn-action-ghost {
+  width: 100%;
+  padding: 12px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.05);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: all 0.2s;
+}
+
+.btn-action-ghost:hover {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.25);
+}
+
+.btn-open-stages {
+  background: linear-gradient(135deg, rgba(0, 242, 254, 0.15), rgba(56, 189, 248, 0.08));
+  border: 1px solid rgba(0, 242, 254, 0.35);
+  color: var(--cyan-glow);
+}
+
+.btn-open-stages:hover {
+  background: linear-gradient(135deg, rgba(0, 242, 254, 0.25), rgba(56, 189, 248, 0.15));
+  box-shadow: 0 0 20px rgba(0, 242, 254, 0.2);
+}
+
+.dock-bar {
+  position: absolute;
+  bottom: 30px;
+  left: 36px;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  background: var(--panel-surface);
+  backdrop-filter: blur(24px);
+  border: 1px solid var(--panel-border);
+  padding: 10px 22px;
+  border-radius: 999px;
+  font-size: 13px;
+  color: var(--text-sub);
+}
+
+.kbd-chip {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  padding: 2px 7px;
+  border-radius: 5px;
+  color: #fff;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+}
+
+/* Static control layout; dynamic solver styles remain with the solver controls. */
+.stage-title { font-weight: 700; color: #fff; font-size: 15px; }
+.stage-picker-action { margin-top: 10px; }
+.current-tile-label { font-size: 12.5px; color: #38bdf8; }
+.radar-legend-spacing { margin-top: 8px; }
+.dfs-controls { display: flex; gap: 6px; width: 100%; }
+.dfs-main { flex: 1; }
+.dfs-toggle { padding: 0 10px; border-radius: 12px; background: rgba(6, 182, 212, 0.2); border: 1px solid rgba(6, 182, 212, 0.4); color: #38bdf8; font-size: 11px; font-weight: 700; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; white-space: nowrap; }
+.restart-card { margin-top: auto; }

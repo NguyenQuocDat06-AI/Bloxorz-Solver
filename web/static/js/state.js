@@ -1,0 +1,24 @@
+export function createGameState() {
+  return {
+    loadedStages: [],
+    currentStageFile: "stage_01.json",
+    currentStageData: null,
+    inGameActive: false,
+    currentCameraMode: "iso",
+    blockR: 1,
+    blockC: 1,
+    blockOrient: 0,
+    moves: 0,
+    gameState: "PLAYING",
+    isRolling: false,
+    blockR2: 1,
+    blockC2: 1,
+    activeCube: 1,
+    currentGrid: [],
+    stageBridges: {},
+    bridgeStates: {},
+    bridgeCellToId: {},
+    switchMap: {},
+    currentDfsMode: "DFS",
+  };
+}
