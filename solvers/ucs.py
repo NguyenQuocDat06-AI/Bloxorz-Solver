@@ -1,7 +1,7 @@
 """Uniform-cost graph search — Trường's contribution.
 
-The problem owns the objective shared with A*. The default risk_v1 objective
-is documented in core/cost.py and SPEC-ucs.md; custom nonnegative costs work
+The problem owns the objective shared with A*. The default fragile_v1 objective
+is documented in core/cost.py; custom nonnegative costs work
 without changing the search algorithm. No heuristic is used.
 """
 import heapq

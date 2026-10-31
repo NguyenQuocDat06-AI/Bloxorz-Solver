@@ -1,4 +1,4 @@
-"""Shared risk_v1 objective for legal Bloxorz transitions (see SPEC-ucs.md §5)."""
+"""UCS fragile_v1 objective, exposed through the shared problem cost API."""
 from typing import TYPE_CHECKING
 
 from .board import Board, TileType
@@ -8,24 +8,23 @@ if TYPE_CHECKING:
     from .problem import Action
 
 
-COST_PROFILE = "risk_v1"
+COST_PROFILE = "fragile_v1"
 
 
 def transition_cost(
     board: Board, state: GameState, action: "Action", next_state: GameState
 ) -> float:
-    """Charge effort plus final-footprint exposure; legality belongs to the engine.
+    """Charge 3 for a fragile landing, 1 for other rolls, 0.25 for control.
 
-    Every directional move costs 1 + 2 per fragile cell + 0.5 per bridge cell.
-    Both cubes contribute after a split move, including the stationary cube.
-    Selecting the other cube costs 0.25 without repeating exposure charges.
-    These weights express planning preferences, not failure probabilities.
+    The fragile surcharge applies once per roll, even over two fragile cells.
+    Bridges and switch activation have no surcharge or discount. These are
+    planning preferences, not failure probabilities. Only legal edges qualify.
     """
     # Comparing the str enum's value avoids a runtime import cycle with problem.
     if action == "SWITCH":
         return 0.25
 
-    cells = set(next_state.block.get_occupied_cells())
-    fragile_cells = sum(board.grid[r][c] == TileType.FRAGILE for r, c in cells)
-    bridge_cells = sum(cell in board.bridge_cell_map for cell in cells)
-    return (4 + 8 * fragile_cells + 2 * bridge_cells) / 4
+    if any(board.grid[r][c] == TileType.FRAGILE
+           for r, c in next_state.block.get_occupied_cells()):
+        return 3.0
+    return 1.0
