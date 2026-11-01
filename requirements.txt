@@ -1,0 +1,5 @@
+# Core dependencies (Minimal & Standard)
+# Standard library is prioritized to minimize setup issues on evaluator machines.
+
+# Optional web framework if serving API (or use built-in http.server)
+# flask>=3.0.0

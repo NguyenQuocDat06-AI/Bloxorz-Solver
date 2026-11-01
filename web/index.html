@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bloxorz 3D</title>
+  <meta name="description" content="Chơi Bloxorz 3D: lăn khối hộp qua cầu nối, công tắc và tìm đường về ô đích.">
+  <script src="static/vendor/three.r128.min.js"></script>
+
+  <link rel="stylesheet" href="static/css/base.css">
+  <link rel="stylesheet" href="static/css/start-screen.css">
+  <link rel="stylesheet" href="static/css/stages.css">
+  <link rel="stylesheet" href="static/css/completion.css">
+  <link rel="stylesheet" href="static/css/hud.css">
+  <link rel="stylesheet" href="static/css/legend.css">
+</head>
+
+<body>
+  <!-- Màn hình bắt đầu. -->
+  <section id="start-screen" aria-labelledby="hero-title">
+    <div class="start-layout">
+      <header class="start-header">
+        <a class="start-wordmark" href="index.html" aria-label="Bloxorz, trang bắt đầu">
+          BLOXORZ<span> / 3D</span>
+        </a>
+        <span class="start-tagline">Trò chơi giải đố 3D</span>
+      </header>
+
+      <div class="start-content">
+        <div class="hero-copy">
+          <div class="hero-badge">TRÒ CHƠI TƯ DUY <span>20 MÀN CHƠI</span></div>
+          <h1 class="hero-title" id="hero-title"><span>BLOXORZ</span><span class="hero-dimension">3D</span></h1>
+          <h2 class="hero-subtitle">Tìm đường cho khối hộp.</h2>
+          <p class="hero-desc">
+            Đưa khối hộp về ô đích. Vượt qua cầu nối, công tắc và những lối đi hẹp theo cách của bạn.
+          </p>
+
+          <div class="start-btn-group">
+            <button class="btn-hero btn-hero-play" data-action="start">Bắt đầu chơi</button>
+            <button class="btn-hero btn-hero-stages" data-action="open-stages">
+              Chọn màn chơi <span class="hero-stage-count">20</span>
+            </button>
+          </div>
+
+          <div class="hero-algorithms">
+            <span class="hero-algorithms-label">TỰ CHƠI HOẶC XEM LỜI GIẢI</span>
+            <ul aria-label="Các thuật toán hỗ trợ">
+              <li>BFS</li>
+              <li>DFS</li>
+              <li>IDS</li>
+              <li>UCS</li>
+              <li>A*</li>
+            </ul>
+          </div>
+        </div>
+
+        <figure class="hero-preview">
+          <div class="preview-heading">
+            <span class="preview-index">01 <span>/ 20</span></span>
+            <span>THE BEGINNING</span>
+          </div>
+          <img class="hero-board" src="static/images/start-board.svg" width="500" height="500"
+            alt="Bàn cờ màn 01 ở góc nhìn isometric, với khối hộp màu cam và ô đích màu xanh."
+            fetchpriority="high" draggable="false">
+          <figcaption class="preview-caption">
+            <span><i class="preview-block-key" aria-hidden="true"></i>Khối điều khiển</span>
+            <span><i class="preview-goal-key" aria-hidden="true"></i>Ô đích</span>
+            <span class="preview-projection">GÓC NHÌN ISOMETRIC</span>
+          </figcaption>
+        </figure>
+      </div>
+
+      <footer class="start-footer">
+        <div class="hero-tips" aria-label="Phím điều khiển">
+          <span class="hero-tip">
+            <span class="hero-tip-label">Di chuyển</span>
+            <span class="hero-keys"><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd></span>
+            <span class="hero-key-alternative">hoặc</span>
+            <span class="hero-keys"><kbd>↑</kbd><kbd>↓</kbd><kbd>←</kbd><kbd>→</kbd></span>
+          </span>
+          <span class="hero-tip"><span class="hero-tip-label">Đổi khối</span><kbd>Space</kbd></span>
+          <span class="hero-tip"><span class="hero-tip-label">Đặt lại</span><kbd>R</kbd></span>
+        </div>
+        <span class="start-footer-note">ĐIỀU KHIỂN BẰNG BÀN PHÍM</span>
+      </footer>
+    </div>
+  </section>
+
+  <!-- Danh sách màn chơi. -->
+  <div id="stage-modal" role="dialog" aria-modal="true" aria-labelledby="stage-modal-title">
+    <div class="stage-modal-box">
+      <div class="modal-head">
+        <div class="modal-title-group">
+          <span class="modal-eyebrow">BLOXORZ 3D</span>
+          <h2 id="stage-modal-title">Danh sách màn chơi</h2>
+          <p>Chọn bàn cờ và tìm đường đến đích.</p>
+        </div>
+        <button class="btn-modal-close" data-action="close-stages" aria-label="Đóng danh sách màn">
+          Đóng <kbd>Esc</kbd>
+        </button>
+      </div>
+
+      <div class="stage-toolbar">
+        <label class="stage-search">
+          <span>Tìm màn</span>
+          <input id="stage-search" type="search" placeholder="Tên hoặc số màn..." autocomplete="off">
+        </label>
+        <span class="stage-result-count" id="stage-result-count" role="status" aria-live="polite"></span>
+      </div>
+      <div class="stage-grid" id="stage-grid-container">
+        <!-- Nạp từ danh sách màn. -->
+      </div>
+      <div class="stage-empty" id="stage-empty" hidden>
+        <strong>Không tìm thấy màn chơi</strong>
+        <p>Thử tên, số màn hoặc cơ chế khác.</p>
+      </div>
+      <div class="stage-modal-footer">
+        <div class="stage-preview-legend"><span>Khối xuất phát</span><span>Ô đích</span></div>
+        <span><kbd>Tab</kbd> Di chuyển <kbd>Enter</kbd> Chơi</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Kết quả hoàn thành màn. -->
+  <div class="completion-overlay" id="completion-modal" hidden>
+    <canvas class="victory-confetti" id="victory-confetti" width="1" height="1" aria-hidden="true" hidden></canvas>
+    <section class="completion-dialog" role="dialog" aria-modal="true"
+      aria-labelledby="completion-title" aria-describedby="completion-description">
+      <div class="completion-topline">
+        <span class="completion-eyebrow" id="completion-stage-label">HOÀN THÀNH MÀN</span>
+        <button class="completion-close" data-action="dismiss-completion" aria-label="Đóng thông báo hoàn thành">Đóng</button>
+      </div>
+      <h2 id="completion-title">Chúc mừng!</h2>
+      <p class="completion-description" id="completion-description">Bạn đã đưa khối hộp về đích.</p>
+
+      <div class="completion-summary">
+        <div class="completion-stage-summary">
+          <span class="completion-stat-label">Màn vừa chơi</span>
+          <strong id="completion-stage-name"></strong>
+        </div>
+        <div class="completion-moves-summary">
+          <span class="completion-stat-label">Số bước</span>
+          <strong id="completion-moves">0</strong>
+        </div>
+      </div>
+
+      <div class="completion-actions">
+        <button class="completion-button completion-primary completion-next" id="completion-next" data-action="next-stage">
+          <span>Chơi tiếp</span>
+          <span id="completion-next-name"></span>
+        </button>
+        <div class="completion-secondary">
+          <button class="completion-button" data-action="replay-stage">Chơi lại</button>
+          <button class="completion-button" id="completion-choose" data-action="completion-stages">Chọn màn</button>
+        </div>
+      </div>
+      <p class="completion-hint"><kbd>Esc</kbd> Xem lại bàn cờ <span>·</span> <kbd>R</kbd> Chơi lại</p>
+    </section>
+  </div>
+
+  <!-- Thông tin và điều khiển. -->
+  <div class="game-layout" id="game-screen" hidden>
+    <header class="brand-dock">
+      <a class="brand-title" href="index.html" aria-label="Về trang bắt đầu">BLOXORZ <span>3D</span></a>
+      <span class="game-header-note">Trò chơi giải đố</span>
+    </header>
+
+    <main class="game-viewport" id="game-viewport" aria-label="Bàn chơi Bloxorz 3D">
+      <div class="vignette"></div>
+      <canvas id="webgl-canvas" tabindex="0" aria-label="Bàn chơi. Dùng WASD hoặc các phím mũi tên để di chuyển."></canvas>
+    </main>
+
+    <div class="hud-sidebar">
+      <!-- Màn hiện tại. -->
+      <div class="card">
+        <div class="card-head">
+          <span>MÀN ĐANG CHƠI</span>
+          <span class="diff-badge diff-easy" id="hud-stage-diff">Dễ</span>
+        </div>
+        <div class="telemetry-row">
+          <span class="stage-title telemetry-key" id="hud-stage-name">Stage 01
+            - The Beginning</span>
+        </div>
+        <button class="stage-picker-action btn-action-ghost btn-open-stages" data-action="open-stages">
+          Đổi màn chơi
+        </button>
+      </div>
+      <!-- Trạng thái và số bước. -->
+      <div class="card">
+        <div class="card-head"><span>TRẠNG THÁI KHỐI HỘP</span></div>
+        <div class="telemetry-row">
+          <span class="telemetry-key">Số bước di chuyển:</span>
+          <span class="telemetry-val counter-hero" id="ui-moves">0</span>
+        </div>
+        <div class="telemetry-row">
+          <span class="telemetry-key">Tư thế khối:</span>
+          <div class="orient-badge-group">
+            <div class="orient-schematic" id="orient-icon">
+              <svg width="18" height="18" viewBox="0 0 18 18"><rect x="4" y="2" width="10" height="14" rx="2" fill="#c25e16" stroke="#fbbf24" stroke-width="1.2"/></svg>
+            </div>
+            <span class="telemetry-val" id="ui-orient">Đứng (1 × 1)</span>
+          </div>
+        </div>
+        <div class="telemetry-row">
+          <span class="telemetry-key">Ô đang đứng:</span>
+          <span class="current-tile-label telemetry-val" id="ui-current-tile">Sàn thường</span>
+        </div>
+        <div class="telemetry-row">
+          <span class="telemetry-key">Trạng thái:</span>
+          <span class="status-badge status-playing" id="ui-status">Đang chơi</span>
+        </div>
+      </div>
+
+      <!-- Bản đồ phụ. -->
+      <div class="card">
+        <div class="card-head">
+          <span>BẢN ĐỒ 2D</span>
+          <span class="tag-badge" id="radar-dim">--×--</span>
+        </div>
+        <div class="radar-container">
+          <canvas id="radar-canvas" width="330" height="125"></canvas>
+        </div>
+        <div class="radar-legend-spacing radar-legend">
+          <span>Khối Bloxorz</span>
+          <span>Ô yếu</span>
+          <span>Đích</span>
+        </div>
+      </div>
+
+      <!-- Chọn bộ giải. -->
+      <div class="card">
+        <div class="card-head"><span>XEM LỜI GIẢI</span></div>
+        <p class="solver-description">Chọn cách tìm đường để xem từng bước di chuyển.</p>
+        <div class="solver-list">
+          <button class="solver-btn solver-btn-bfs" data-algorithm="BFS">
+            <span>BFS (Chiều rộng)</span>
+          </button>
+          <div class="dfs-controls">
+            <button id="btn-dfs-main" class="dfs-main solver-btn solver-btn-dfs" data-action="run-dfs">
+              <span id="dfs-btn-label">DFS (Chiều sâu)</span>
+            </button>
+            <button class="dfs-toggle" id="btn-dfs-toggle" data-action="toggle-dfs" title="Chuyển giữa DFS và IDS">
+              <span>IDS</span>
+            </button>
+          </div>
+          <button class="solver-btn solver-btn-ucs" data-algorithm="UCS">
+            <span>UCS (Theo chi phí)</span>
+          </button>
+          <button class="solver-btn solver-btn-astar" data-algorithm="ASTAR">
+            <span>A* (Định hướng)</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Kết quả tìm kiếm. -->
+      <div class="card">
+        <div class="card-head"><span>THÔNG TIN LỜI GIẢI</span></div>
+        <div class="telemetry-row">
+          <span class="telemetry-key">Thuật toán:</span>
+          <span class="telemetry-val" id="bm-algo">---</span>
+        </div>
+        <div class="telemetry-row">
+          <span class="telemetry-key">Thời gian chạy:</span>
+          <span class="telemetry-val" id="bm-time">---</span>
+        </div>
+        <div class="telemetry-row">
+          <span class="telemetry-key">Bộ nhớ tiêu thụ:</span>
+          <span class="telemetry-val" id="bm-mem">---</span>
+        </div>
+        <div class="telemetry-row">
+          <span class="telemetry-key">Nút mở rộng:</span>
+          <span class="telemetry-val" id="bm-nodes">---</span>
+        </div>
+        <div class="telemetry-row">
+          <span class="telemetry-key">Độ dài đường đi:</span>
+          <span class="telemetry-val" id="bm-steps">---</span>
+        </div>
+      </div>
+
+      <!-- Góc nhìn camera. -->
+      <div class="card">
+        <div class="card-head"><span>GÓC NHÌN CAMERA</span></div>
+        <div class="cam-grid">
+          <button class="cam-btn active" id="btn-cam-iso" data-camera="iso">Phối cảnh</button>
+          <button class="cam-btn" id="btn-cam-side" data-camera="side">Ngang</button>
+          <button class="cam-btn" id="btn-cam-top" data-camera="top">Từ trên</button>
+        </div>
+      </div>
+
+      <!-- Chú giải các loại ô. -->
+      <div class="card">
+        <div class="card-head"><span>HƯỚNG DẪN CÁC LOẠI Ô</span></div>
+        <div class="legend-grid">
+          <div class="legend-item">
+            <div class="legend-swatch swatch-floor"></div>
+            <div class="legend-text">
+              <span class="legend-title">Sàn thường</span>
+              <span class="legend-desc">Chịu lực ở mọi tư thế</span>
+            </div>
+            <span class="rule-pill rule-safe">AN TOÀN</span>
+          </div>
+          <div class="legend-item">
+            <div class="legend-swatch swatch-fragile"></div>
+            <div class="legend-text">
+              <span class="legend-title">Ô yếu</span>
+              <span class="legend-desc">Chỉ nâng đỡ khối nằm</span>
+            </div>
+            <span class="rule-pill rule-danger">KHÔNG ĐƯỢC ĐỨNG</span>
+          </div>
+          <div class="legend-item">
+            <div class="legend-swatch swatch-bridge"></div>
+            <div class="legend-text">
+              <span class="legend-title">Cầu nối</span>
+              <span class="legend-desc">Đóng/mở theo công tắc</span>
+            </div>
+            <span class="rule-pill rule-bridge">ĐÓNG / MỞ</span>
+          </div>
+          <div class="legend-item">
+            <div class="legend-swatch swatch-soft"></div>
+            <div class="legend-text">
+              <span class="legend-title">Công tắc mềm</span>
+              <span class="legend-desc">Kích hoạt ở mọi tư thế</span>
+            </div>
+            <span class="rule-pill rule-soft">MỌI TƯ THẾ</span>
+          </div>
+          <div class="legend-item">
+            <div class="legend-swatch swatch-heavy"></div>
+            <div class="legend-text">
+              <span class="legend-title">Công tắc nặng</span>
+              <span class="legend-desc">Chỉ kích hoạt khi đứng</span>
+            </div>
+            <span class="rule-pill rule-heavy">CẦN ĐỨNG</span>
+          </div>
+          <div class="legend-item">
+            <div class="legend-swatch swatch-split"></div>
+            <div class="legend-text">
+              <span class="legend-title">Công tắc phân tách</span>
+              <span class="legend-desc">Chia thành 2 khối 1×1</span>
+            </div>
+            <span class="rule-pill rule-split">CẦN ĐỨNG</span>
+          </div>
+          <div class="legend-item">
+            <div class="legend-swatch swatch-goal"></div>
+            <div class="legend-text">
+              <span class="legend-title">Ô đích</span>
+              <span class="legend-desc">Hoàn thành khi khối đứng</span>
+            </div>
+            <span class="rule-pill rule-goal">CẦN ĐỨNG</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Đặt lại màn. -->
+      <div class="restart-card card">
+        <button class="btn-action-ghost" data-action="reset">Đặt lại màn (R)</button>
+      </div>
+    </div>
+
+    <div class="dock-bar">
+      <span>Điều khiển: <span class="kbd-chip">W</span> <span class="kbd-chip">A</span> <span class="kbd-chip">S</span>
+        <span class="kbd-chip">D</span> hoặc <span class="kbd-chip">↑</span> <span class="kbd-chip">↓</span> <span
+          class="kbd-chip">←</span> <span class="kbd-chip">→</span></span>
+      <span>|</span>
+      <span>Đổi khối con: <span class="kbd-chip">Space</span></span>
+      <span>|</span>
+      <span>Đặt lại: <span class="kbd-chip">R</span></span>
+    </div>
+
+  </div>
+
+  <script type="module" src="static/js/app.js"></script>
+</body>
+
+</html>
