@@ -18,7 +18,7 @@ def format_stage(data: dict) -> str:
     lines.append(f'  "difficulty": {json.dumps(data.get("difficulty", "Medium"), ensure_ascii=False)},')
     lines.append(f'  "start": [{data["start"][0]}, {data["start"][1]}],')
     lines.append(f'  "goal": [{data["goal"][0]}, {data["goal"][1]}],')
-    
+
     lines.append('  "grid": [')
     grid = data["grid"]
     for i, row in enumerate(grid):
@@ -26,10 +26,10 @@ def format_stage(data: dict) -> str:
         if i < len(grid) - 1:
             row_str += ","
         lines.append(row_str)
-    
+
     has_bridges = "bridges" in data and bool(data["bridges"])
     has_switches = "switches" in data and bool(data["switches"])
-    
+
     if has_bridges or has_switches:
         lines.append("  ],")
     else:

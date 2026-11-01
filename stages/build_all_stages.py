@@ -18,15 +18,15 @@ def solve_with_bfs(problem: BloxorzProblem):
     start = problem.get_initial_state()
     if problem.is_goal(start):
         return []
-    
+
     queue = deque([(start, [])])
     visited = {start}
-    
+
     while queue:
         state, path = queue.popleft()
         if problem.is_goal(state):
             return path
-        
+
         for action in problem.get_actions(state):
             nxt = problem.get_successor(state, action)
             if nxt is not None and nxt not in visited:
