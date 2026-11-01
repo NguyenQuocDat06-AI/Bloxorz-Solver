@@ -1,11 +1,11 @@
-"""Load stage files and build the stage selector's metadata."""
+"""Đọc màn chơi và thông tin danh sách màn."""
 import json
 from pathlib import Path
 from typing import Dict, List, Union
 
 
 class StageNotFoundError(FileNotFoundError):
-    """The requested name does not identify a stage in the configured directory."""
+    """Tên tệp màn không hợp lệ hoặc không tồn tại."""
 
     def __init__(self, name: str):
         super().__init__(f"Stage {name} not found")
@@ -16,7 +16,7 @@ class StageRepository:
         self.directory = Path(directory).resolve()
 
     def resolve(self, name: str) -> Path:
-        """Accept JSON filenames from this directory, including for solve requests."""
+        """Trả về đường dẫn tệp JSON trong thư mục màn."""
         if (
             not name.endswith(".json")
             or Path(name).name != name

@@ -30,7 +30,7 @@ export function createRadar(state) {
       5: '#be123c',
       6: '#7e22ce',
       7: '#059669',
-      9: '#b45309'
+      9: '#0c3338'
     };
 
     for (let r = 0; r < rows; r++) {
@@ -64,10 +64,9 @@ export function createRadar(state) {
         ctx.stroke();
 
         if (type === 9) {
-          ctx.fillStyle = '#fde047';
-          ctx.beginPath();
-          ctx.arc(cx + cellSize / 2, cy + cellSize / 2, cellSize * 0.28, 0, Math.PI * 2);
-          ctx.fill();
+          ctx.strokeStyle = '#81e3d0';
+          ctx.lineWidth = 1.5;
+          ctx.strokeRect(cx + cellSize * 0.25, cy + cellSize * 0.25, cellSize * 0.5, cellSize * 0.5);
         } else if (type === 4) {
           ctx.fillStyle = '#fef08a';
           ctx.beginPath();
@@ -84,7 +83,6 @@ export function createRadar(state) {
       }
     }
 
-    // Vẽ vị trí khối hộp Bloxorz phát sáng trên Radar (Hỗ trợ cả chế độ phân tách SPLIT)
     if (state.currentGrid && state.gameState === "PLAYING") {
       ctx.fillStyle = '#00f2fe';
       ctx.strokeStyle = '#ffffff';
@@ -108,7 +106,6 @@ export function createRadar(state) {
         ctx.fillRect(bx + 1, by + 1, cellSize - 2, cellSize * 2 - 2);
         ctx.strokeRect(bx + 1, by + 1, cellSize - 2, cellSize * 2 - 2);
       } else if (state.blockOrient === 3) {
-        // Khối con 1
         const bx1 = startX + state.blockC * cellSize;
         const by1 = startY + state.blockR * cellSize;
         ctx.fillStyle = state.activeCube === 1 ? '#00f2fe' : '#0284c7';
@@ -118,7 +115,6 @@ export function createRadar(state) {
         ctx.fillRect(bx1 + 1, by1 + 1, cellSize - 2, cellSize - 2);
         ctx.strokeRect(bx1 + 1, by1 + 1, cellSize - 2, cellSize - 2);
 
-        // Khối con 2
         const bx2 = startX + state.blockC2 * cellSize;
         const by2 = startY + state.blockR2 * cellSize;
         ctx.fillStyle = state.activeCube === 2 ? '#00f2fe' : '#0284c7';

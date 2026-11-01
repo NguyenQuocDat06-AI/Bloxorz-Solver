@@ -1,7 +1,4 @@
-"""
-Bloxorz Core Package
-Chứa định nghĩa không gian trạng thái, mô hình bản đồ và lớp bài toán Bloxorz.
-"""
+"""Mô hình và luật chơi Bloxorz."""
 from .state import Orientation, BlockState, GameState
 from .board import TileType, SwitchBehavior, Switch, Bridge, Board
 from .problem import BloxorzProblem, Action

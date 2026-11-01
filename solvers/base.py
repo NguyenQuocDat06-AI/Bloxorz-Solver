@@ -8,37 +8,24 @@ from core.problem import BloxorzProblem
 
 @dataclass
 class SearchResult:
-    """
-    Kết quả chuẩn trả về sau khi thực thi thuật toán tìm kiếm.
-    Đáp ứng đầy đủ 4 tiêu chí đo đạc thực nghiệm của đề bài:
-    1. search_time_ms: Thời gian tìm kiếm (ms).
-    2. memory_peak_kb: Dung lượng RAM đỉnh tiêu thụ (KB).
-    3. expanded_nodes: Tổng số node đã được mở rộng.
-    4. solution_length: Số bước của đường đi tìm được.
-    """
-    status: str                         # "FOUND" hoặc "NOT_FOUND"
-    path: List[str] = field(default_factory=list)  # Danh sách nước đi ['RIGHT', 'DOWN', ...]
-    solution_length: int = 0            # Số bước di chuyển
-    expanded_nodes: int = 0             # Số node được lấy ra từ Frontier để duyệt
-    search_time_ms: float = 0.0         # Thời gian tìm kiếm
-    memory_peak_kb: float = 0.0         # Bộ nhớ đỉnh tiêu thụ
-    cost: float = 0.0                   # Tổng chi phí đường đi (quan trọng với UCS và A*)
+    """Kết quả tìm kiếm; bộ nhớ là đỉnh tracemalloc (KiB)."""
+    status: str  # FOUND hoặc NOT_FOUND.
+    path: List[str] = field(default_factory=list)
+    solution_length: int = 0  # Tính cả SWITCH.
+    expanded_nodes: int = 0
+    search_time_ms: float = 0.0
+    memory_peak_kb: float = 0.0
+    cost: float = 0.0
 
 
 class BaseSolver(ABC):
-    """
-    Lớp cơ sở trừu tượng cho tất cả các thuật toán tìm kiếm.
-    Mọi thành viên (Phúc, Đức, Trường, Quân) đều kế thừa lớp này.
-    """
+    """Giao diện chung cho các bộ giải."""
 
     def __init__(self, name: str):
         self.name = name
 
     def solve(self, problem: BloxorzProblem) -> SearchResult:
-        """
-        Bọc việc đo lường bộ nhớ (tracemalloc) và thời gian thực thi (time.perf_counter),
-        sau đó gọi hàm _search() do từng thành viên tự code.
-        """
+        """Đo thời gian và bộ nhớ của _search()."""
         owns_tracer = not tracemalloc.is_tracing()
         if owns_tracer:
             tracemalloc.start()
@@ -46,8 +33,7 @@ class BaseSolver(ABC):
             start_time = time.perf_counter()
             result = self._search(problem)
             elapsed_ms = (time.perf_counter() - start_time) * 1000.0
-            # With a caller-owned tracer, this is its process-wide peak; do not
-            # reset it or stop tracing allocations on the caller's behalf.
+            # Nếu tracer đã chạy, dùng đỉnh chung và giữ nguyên vòng đời của nó.
             _, peak_bytes = tracemalloc.get_traced_memory()
             result.search_time_ms = round(elapsed_ms, 3)
             result.memory_peak_kb = round(peak_bytes / 1024.0, 2)
@@ -59,7 +45,4 @@ class BaseSolver(ABC):
 
     @abstractmethod
     def _search(self, problem: BloxorzProblem) -> SearchResult:
-        """
-        Phương thức trừu tượng - Thành viên được phân công PHẢI tự viết code tại đây.
-        """
         pass

@@ -1,4 +1,4 @@
-"""HTTP routes and response formatting for the local application."""
+"""Định tuyến HTTP và định dạng phản hồi."""
 from http.server import SimpleHTTPRequestHandler
 import json
 from urllib.parse import parse_qs, unquote, urlparse

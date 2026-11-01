@@ -1,9 +1,4 @@
-"""Uniform-cost graph search — Trường's contribution.
-
-The problem owns the objective shared with A*. The default risk_v1 objective
-is documented in core/cost.py and SPEC-ucs.md; custom nonnegative costs work
-without changing the search algorithm. No heuristic is used.
-"""
+"""UCS tìm đường đi có tổng chi phí nhỏ nhất."""
 import heapq
 import math
 from itertools import count
@@ -22,23 +17,19 @@ class UCSSolver(BaseSolver):
         self, problem: BloxorzProblem, state: GameState,
         action: Action, next_state: GameState,
     ) -> float:
-        """Delegate to the shared problem cost, including custom objectives."""
         return problem.get_step_cost(state, action, next_state)
 
     @staticmethod
     def _validate_cost(cost: float, action: Action) -> None:
-        # Integers are always finite; converting a large int to float can overflow.
+        # Tránh ép int lớn sang float khi kiểm tra tính hữu hạn.
         if isinstance(cost, bool) or not isinstance(cost, (int, float)):
             raise TypeError(f"Invalid cost for {action.value}: expected int/float, got {cost!r}")
         if cost < 0 or (isinstance(cost, float) and not math.isfinite(cost)):
             raise ValueError(f"Invalid cost for {action.value}: expected finite nonnegative cost, got {cost!r}")
 
     def _search(self, problem: BloxorzProblem) -> SearchResult:
-        """Return the minimum-cost legal plan, or exhaust the finite graph.
-
-        expanded_nodes counts valid heap pops, including the goal, but not stale
-        entries. Optimality assumes every reachable edge has nonnegative cost;
-        runtime validation only inspects edges that are actually considered.
+        """Chi phí cạnh phải hữu hạn, không âm.
+        expanded_nodes đếm lượt lấy hợp lệ từ heap, gồm đích.
         """
         start = problem.get_initial_state()
         if not problem.is_valid_state(start):
@@ -56,7 +47,7 @@ class UCSSolver(BaseSolver):
                 continue
 
             expanded_nodes += 1
-            # A generated goal can still have an expensive, nonfinal label.
+            # Chỉ chốt đích khi lấy khỏi heap.
             if problem.is_goal(state):
                 path = []
                 cursor = state
@@ -81,11 +72,11 @@ class UCSSolver(BaseSolver):
                     raise ValueError(f"Accumulated cost overflow for {action.value}") from error
                 self._validate_cost(candidate_cost, action)
 
-                # Strict improvement also prevents repeated zero-cost cycles.
+                # Chỉ nhận chi phí thấp hơn để tránh chu trình chi phí 0.
                 if candidate_cost < best_cost.get(successor, math.inf):
                     best_cost[successor] = candidate_cost
                     parent[successor] = (state, action.value)
-                    # Unique insertion IDs prevent comparisons between GameStates.
+                    # ID riêng tránh so sánh GameState khi chi phí bằng nhau.
                     heapq.heappush(frontier, (candidate_cost, next(counter), successor))
 
         return SearchResult(status="NOT_FOUND", expanded_nodes=expanded_nodes)

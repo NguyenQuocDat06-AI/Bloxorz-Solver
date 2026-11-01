@@ -1,10 +1,10 @@
-"""Entrypoint for python main.py, python -m web.server and python web/server.py."""
+"""Khởi chạy máy chủ web Bloxorz."""
 from pathlib import Path
 import argparse
 import sys
 import webbrowser
 
-# Direct script execution needs the project root before importing the web package.
+# Bổ sung thư mục gốc khi chạy trực tiếp tệp này.
 if __package__ in (None, ""):
     project_root = str(Path(__file__).resolve().parent.parent)
     if project_root not in sys.path:
@@ -14,7 +14,7 @@ from web.application import create_server
 from web.config import PORT, PROJECT_DIR as _PROJECT_DIR, STAGES_DIR as _STAGES_DIR, WEB_DIR
 from web.handler import BloxorzServerHandler
 
-# Preserve the existing handler import and path constants for local integrations.
+# Giữ tên lớp và đường dẫn cho các mô-đun đang sử dụng.
 BASE_DIR = str(WEB_DIR)
 PROJECT_DIR = str(_PROJECT_DIR)
 STAGES_DIR = str(_STAGES_DIR)
@@ -30,16 +30,14 @@ def run(host: str = "", port: int = PORT, *, open_browser: bool = True):
                     pass
     with create_server(host, port) as server:
         url = f"http://localhost:{server.server_address[1]}/index.html"
-        print("=" * 60)
-        print(f"🚀 Bloxorz 3D Web Server running at: {url}")
-        print("💡 Nhấn Ctrl+C để dừng server.")
-        print("=" * 60)
+        print(f"Máy chủ Bloxorz: {url}")
+        print("Nhấn Ctrl+C để dừng.")
         if open_browser:
             webbrowser.open(url)
         try:
             server.serve_forever()
         except KeyboardInterrupt:
-            print("\nĐã dừng server.")
+            print("\nMáy chủ đã dừng.")
 
 
 def main():

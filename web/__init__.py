@@ -1,1 +1,1 @@
-"""Local web interface for the Bloxorz solver."""
+"""Giao diện web của trò chơi Bloxorz."""

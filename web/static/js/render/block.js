@@ -22,7 +22,6 @@ export function createBlockRenderer(state, view, { updateBlockHud }) {
       view.blockMatA.emissive.setHex(0x000000);
       view.blockMatB.emissive.setHex(0x000000);
     } else if (state.blockOrient === 3) {
-      // Trạng thái tách thành 2 khối 1x1x1 độc lập
       view.blockMaster.position.set(0, 0, 0);
       view.cubeA.position.set(state.blockC * u, half, state.blockR * u);
       view.cubeB.position.set(state.blockC2 * u, half, state.blockR2 * u);

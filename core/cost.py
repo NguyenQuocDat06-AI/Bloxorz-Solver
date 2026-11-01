@@ -1,4 +1,4 @@
-"""Shared risk_v1 objective for legal Bloxorz transitions (see SPEC-ucs.md §5)."""
+"""Hàm chi phí risk_v1."""
 from typing import TYPE_CHECKING
 
 from .board import Board, TileType
@@ -14,14 +14,11 @@ COST_PROFILE = "risk_v1"
 def transition_cost(
     board: Board, state: GameState, action: "Action", next_state: GameState
 ) -> float:
-    """Charge effort plus final-footprint exposure; legality belongs to the engine.
-
-    Every directional move costs 1 + 2 per fragile cell + 0.5 per bridge cell.
-    Both cubes contribute after a split move, including the stationary cube.
-    Selecting the other cube costs 0.25 without repeating exposure charges.
-    These weights express planning preferences, not failure probabilities.
+    """Di chuyển: 1 + 2F + 0.5B; đổi khối: 0.25.
+    F: ô yếu, B: ô cầu trong dấu chân cuối bước, gồm cả khối đứng yên.
+    Chỉ dùng với bước đi hợp lệ.
     """
-    # Comparing the str enum's value avoids a runtime import cycle with problem.
+    # So sánh chuỗi để tránh import vòng với problem.
     if action == "SWITCH":
         return 0.25
 

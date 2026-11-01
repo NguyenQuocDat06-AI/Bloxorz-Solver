@@ -3,6 +3,7 @@ import * as defaultApi from '../api.js';
 export function createSolverControls(state, game, audio, api = defaultApi) {
   const { resetStage, roll, syncBlockTransform } = game;
   const { playAudio } = audio;
+  let requestVersion = 0;
   function toggleDfsIds(e) {
     if (e) e.stopPropagation();
     state.currentDfsMode = (state.currentDfsMode === 'DFS') ? 'IDS' : 'DFS';
@@ -13,15 +14,15 @@ export function createSolverControls(state, game, audio, api = defaultApi) {
       label.textContent = 'DFS (Chiều sâu)';
       btn.style.background = 'linear-gradient(135deg, rgba(16, 185, 129, 0.35), rgba(5, 150, 105, 0.2))';
       btn.style.borderColor = 'rgba(16, 185, 129, 0.4)';
-      toggle.innerHTML = '<span>⇄ IDS</span>';
+      toggle.textContent = 'IDS';
       toggle.style.background = 'rgba(6, 182, 212, 0.2)';
       toggle.style.borderColor = 'rgba(6, 182, 212, 0.4)';
       toggle.style.color = '#38bdf8';
     } else {
-      label.textContent = 'IDS (Sâu dần tối ưu)';
+      label.textContent = 'IDS (Sâu dần)';
       btn.style.background = 'linear-gradient(135deg, rgba(6, 182, 212, 0.35), rgba(14, 116, 144, 0.2))';
       btn.style.borderColor = 'rgba(6, 182, 212, 0.5)';
-      toggle.innerHTML = '<span>⇄ DFS</span>';
+      toggle.textContent = 'DFS';
       toggle.style.background = 'rgba(16, 185, 129, 0.2)';
       toggle.style.borderColor = 'rgba(16, 185, 129, 0.4)';
       toggle.style.color = '#34d399';
@@ -33,24 +34,38 @@ export function createSolverControls(state, game, audio, api = defaultApi) {
   }
 
   async function callPythonSolver(algo) {
+    const requestId = ++requestVersion;
+    let requestedRun = state.runId;
+    const stageFile = state.currentStageFile;
+    const isCurrentRequest = () => requestId === requestVersion
+      && state.runId === requestedRun && state.currentStageFile === stageFile;
     document.getElementById('bm-algo').textContent = algo;
-    document.getElementById('bm-time').textContent = 'Calculating...';
+    document.getElementById('bm-time').textContent = 'Đang tìm lời giải...';
     try {
-      const data = await api.solveStage(state.currentStageFile, algo);
+      const data = await api.solveStage(stageFile, algo);
+      if (!isCurrentRequest()) return;
       if (data.status === 'NOT_IMPLEMENTED') {
-        alert(`[Nhắc nhở]: Thành viên phụ trách ${algo} chưa viết code trong solvers/!`);
-        document.getElementById('bm-time').textContent = 'Not implemented';
+        alert(`Bộ giải ${algo} chưa được triển khai.`);
+        document.getElementById('bm-time').textContent = 'Chưa hỗ trợ';
         return;
       }
+      const hasPath = data.status === 'FOUND' && data.path.length > 0;
+      if (hasPath) {
+        resetStage();
+        requestedRun = state.runId;
+      }
       document.getElementById('bm-time').textContent = `${data.time_ms} ms`;
+      document.getElementById('bm-algo').textContent = algo;
       document.getElementById('bm-mem').textContent = `${data.memory_kb} KB`;
       document.getElementById('bm-nodes').textContent = data.expanded_nodes;
       document.getElementById('bm-steps').textContent = data.steps;
 
-      if (data.status === 'FOUND' && data.path.length > 0) {
-        resetStage();
+      if (hasPath) {
+        const playbackRun = requestedRun;
         function play(idx) {
-          if (idx >= data.path.length) return;
+          if (idx >= data.path.length || requestId !== requestVersion
+            || state.runId !== playbackRun || state.currentStageFile !== stageFile
+            || state.gameState !== 'PLAYING') return;
           const act = data.path[idx];
           if (act === 'SWITCH' || act === 'SWITCH_CUBE') {
             if (state.blockOrient === 3) {
@@ -66,8 +81,9 @@ export function createSolverControls(state, game, audio, api = defaultApi) {
         setTimeout(() => play(0), 300);
       }
     } catch (e) {
+      if (!isCurrentRequest()) return;
       console.error(e);
-      document.getElementById('bm-time').textContent = 'Error';
+      document.getElementById('bm-time').textContent = 'Lỗi';
     }
   }
   return { toggleDfsIds, runDfsSolver, callPythonSolver };

@@ -1,4 +1,4 @@
-"""Select Python solvers and serialize their results independently of HTTP."""
+"""Gọi bộ giải và định dạng kết quả."""
 from functools import partial
 from threading import Lock
 
@@ -22,8 +22,7 @@ SOLVER_FACTORIES = {
     "A*": AStarSolver,
 }
 
-# tracemalloc is process-wide: HTTP asset requests may run concurrently, but
-# separate solver searches must not start/stop each other's measurement scope.
+# Chạy các bộ giải tuần tự vì tracemalloc dùng chung trong tiến trình.
 _SEARCH_LOCK = Lock()
 
 

@@ -12,14 +12,13 @@ if sys.platform == "win32":
 STAGES_DIR = os.path.dirname(os.path.abspath(__file__))
 
 def format_stage(data: dict) -> str:
-    """Format stage dict thành JSON trực quan với grid là ma trận 2D trên từng dòng."""
+    """Xuất JSON với mỗi hàng grid trên một dòng."""
     lines = ["{"]
     lines.append(f'  "name": {json.dumps(data["name"], ensure_ascii=False)},')
     lines.append(f'  "difficulty": {json.dumps(data.get("difficulty", "Medium"), ensure_ascii=False)},')
     lines.append(f'  "start": [{data["start"][0]}, {data["start"][1]}],')
     lines.append(f'  "goal": [{data["goal"][0]}, {data["goal"][1]}],')
     
-    # Grid: Ma trận 2D thể hiện trực quan từng hàng
     lines.append('  "grid": [')
     grid = data["grid"]
     for i, row in enumerate(grid):

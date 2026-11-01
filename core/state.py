@@ -4,13 +4,7 @@ from dataclasses import dataclass
 
 
 class Orientation(IntEnum):
-    """
-    Ba tư thế cơ bản của khối 1x1x2 và trạng thái tách khối:
-    - STAND (0): Đứng thẳng trên 1 ô (r, c).
-    - HORIZONTAL (1): Nằm ngang trên 2 ô kề nhau theo hàng ngang (r, c) và (r, c + 1).
-    - VERTICAL (2): Nằm dọc trên 2 ô kề nhau theo cột dọc (r, c) và (r + 1, c).
-    - SPLIT (3): Bị tách thành 2 khối đơn 1x1x1 độc lập.
-    """
+    """Tư thế khối; (r, c) là ô trên cùng hoặc bên trái."""
     STAND = 0
     HORIZONTAL = 1
     VERTICAL = 2
@@ -19,22 +13,18 @@ class Orientation(IntEnum):
 
 @dataclass(frozen=True)
 class BlockState:
-    """
-    Biểu diễn vị trí và hình thể của khối tại một thời điểm.
-    Lớp này bất biến (immutable) và hashable để làm key trong visited set / dictionary.
-    """
-    # Khối chính (hoặc khối 1 khi bị tách)
+    """Trạng thái khối bất biến, dùng làm khóa tìm kiếm."""
     r: int
     c: int
     orientation: Orientation
 
-    # Trường dùng riêng khi khối bị tách thành 2 khối 1x1x1 (SPLIT)
+    # Tọa độ khối thứ hai khi tách.
     r2: Optional[int] = None
     c2: Optional[int] = None
-    active_cube: int = 1  # 1 hoặc 2: khối con nào đang được điều khiển
+    active_cube: int = 1  # 1 hoặc 2.
 
     def get_occupied_cells(self) -> List[Tuple[int, int]]:
-        """Trả về danh sách tọa độ các ô trên sàn mà khối đang chiếm giữ."""
+        """Liệt kê các ô khối đang chiếm."""
         if self.orientation == Orientation.STAND:
             return [(self.r, self.c)]
         elif self.orientation == Orientation.HORIZONTAL:
@@ -49,27 +39,21 @@ class BlockState:
         return []
 
     def is_standing(self) -> bool:
-        """Kiểm tra khối có đang đứng thẳng dạng 1x1x2 hay không."""
         return self.orientation == Orientation.STAND
 
     def is_split(self) -> bool:
-        """Kiểm tra khối có đang ở trạng thái phân tách thành 2 khối con hay không."""
         return self.orientation == Orientation.SPLIT
 
 
 @dataclass(frozen=True)
 class GameState:
-    """
-    Trạng thái toàn cục đầy đủ của trò chơi Bloxorz:
-    - block: Vị trí & tư thế khối.
-    - bridges: Bộ tuple bất biến lưu trạng thái đóng (False) hoặc mở (True) của từng cây cầu.
-    """
+    """Trạng thái khối và các cầu."""
     block: BlockState
-    # Tuple dạng (("bridge_1", True), ("bridge_2", False), ...) sắp xếp theo tên để hash đồng nhất
+    # Sắp theo ID để băm nhất quán.
     bridges: Tuple[Tuple[str, bool], ...] = ()
 
     def get_bridge_status(self, bridge_id: str) -> bool:
-        """Kiểm tra trạng thái cầu: True là mở (đi được), False là đóng (khoảng trống)."""
+        """True nếu cầu mở; ID không tồn tại trả False."""
         for b_id, state in self.bridges:
             if b_id == bridge_id:
                 return state

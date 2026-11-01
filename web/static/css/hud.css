@@ -1,94 +1,102 @@
-/* =========================================================================
-   4. GIAO DIỆN IN-GAME (HUD HEADER & SIDEBAR)
-   ========================================================================= */
+/* Bảng điều khiển. */
+.game-layout {
+  position: fixed;
+  inset: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 360px;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  gap: 18px 24px;
+  padding: 24px;
+  height: 100dvh;
+}
+
+.game-layout[hidden] { display: none; }
+
+.game-viewport {
+  position: relative;
+  grid-column: 1;
+  grid-row: 2;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+  border: 1px solid var(--panel-border);
+  border-radius: 18px;
+  background: #080e17;
+}
+
 .brand-dock {
-  position: absolute;
-  top: 30px;
-  left: 36px;
-  z-index: 10;
+  grid-column: 1;
+  grid-row: 1;
   display: flex;
-  flex-direction: column;
-  gap: 8px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  min-height: 36px;
 }
 
 .brand-title {
-  font-size: 30px;
+  font-size: 22px;
   font-weight: 800;
   letter-spacing: -0.5px;
-  background: linear-gradient(135deg, #ffffff 30%, #94a3b8 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
+  color: #f8fafc;
+  text-decoration: none;
 }
 
-.brand-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 11.5px;
-  font-weight: 700;
-  color: var(--cyan-glow);
-  background: rgba(0, 242, 254, 0.08);
-  border: 1px solid rgba(0, 242, 254, 0.3);
-  padding: 5px 14px;
-  border-radius: 999px;
-}
-
-.pulse-dot {
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background: var(--cyan-glow);
-  box-shadow: 0 0 10px var(--cyan-glow);
-}
+.brand-title > span { color: #79e6cf; font-size: 13px; }
+.game-header-note { color: var(--text-sub); font-size: 12px; }
 
 .hud-sidebar {
-  position: absolute;
-  top: 30px;
-  right: 36px;
-  bottom: 30px;
-  width: 380px;
+  grid-column: 2;
+  grid-row: 1 / -1;
+  min-width: 0;
+  min-height: 0;
   background: var(--panel-surface);
   backdrop-filter: blur(30px);
   border: 1px solid var(--panel-border);
-  border-radius: 26px;
+  border-radius: 20px;
   box-shadow: 0 30px 80px rgba(0, 0, 0, 0.75);
   z-index: 10;
-  padding: 24px;
+  padding: 16px;
   display: flex;
   flex-direction: column;
   gap: 14px;
   overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: #394957 transparent;
 }
 
-.hud-sidebar::-webkit-scrollbar {
-  display: none;
-}
+.hud-sidebar::-webkit-scrollbar { width: 5px; }
+.hud-sidebar::-webkit-scrollbar-thumb { border-radius: 4px; background: #394957; }
 
 .card {
+  flex: none;
+  min-width: 0;
   background: rgba(255, 255, 255, 0.035);
   border: 1px solid rgba(255, 255, 255, 0.07);
-  border-radius: 18px;
-  padding: 15px 18px;
+  border-radius: 14px;
+  padding: 14px;
 }
 
 .card-head {
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 11px;
+  font-family: var(--font-mono);
+  font-size: 10px;
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 1.2px;
+  letter-spacing: 0.7px;
   color: var(--text-sub);
   margin-bottom: 10px;
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: 8px;
 }
 
 .telemetry-row {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  flex-wrap: wrap;
+  gap: 6px 12px;
   margin-bottom: 8px;
 }
 
@@ -97,12 +105,16 @@
 }
 
 .telemetry-key {
+  min-width: 0;
   font-size: 13px;
   color: var(--text-sub);
 }
 
 .telemetry-val {
-  font-family: 'JetBrains Mono', monospace;
+  min-width: 0;
+  max-width: 100%;
+  overflow-wrap: anywhere;
+  font-family: var(--font-mono);
   font-size: 14px;
   font-weight: 700;
   color: #fff;
@@ -114,7 +126,7 @@
 }
 
 .status-badge {
-  font-family: 'JetBrains Mono', monospace;
+  font-family: var(--font-mono);
   font-size: 11px;
   font-weight: 800;
   padding: 4px 12px;
@@ -139,20 +151,23 @@
   color: var(--rose-glow);
 }
 
-/* Solver buttons */
+/* Nút chọn bộ giải. */
 .solver-list {
   display: flex;
   flex-direction: column;
   gap: 8px;
 }
 
+.solver-description { margin-bottom: 12px; color: var(--text-sub); font-size: 12px; line-height: 1.6; }
+
 .solver-btn {
+  min-width: 0;
   width: 100%;
   padding: 12px 14px;
   border-radius: 12px;
   border: 1px solid transparent;
   color: #fff;
-  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-family: var(--font-ui);
   font-size: 13px;
   font-weight: 600;
   cursor: pointer;
@@ -188,7 +203,7 @@
 }
 
 .tag-badge {
-  font-family: 'JetBrains Mono', monospace;
+  font-family: var(--font-mono);
   font-size: 10px;
   font-weight: 700;
   padding: 2px 7px;
@@ -257,19 +272,20 @@
 }
 
 .dock-bar {
-  position: absolute;
-  bottom: 30px;
-  left: 36px;
-  z-index: 10;
+  grid-column: 1;
+  grid-row: 3;
+  min-width: 0;
   display: flex;
   align-items: center;
-  gap: 14px;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 8px 12px;
   background: var(--panel-surface);
   backdrop-filter: blur(24px);
   border: 1px solid var(--panel-border);
-  padding: 10px 22px;
-  border-radius: 999px;
-  font-size: 13px;
+  padding: 12px;
+  border-radius: 12px;
+  font-size: 11px;
   color: var(--text-sub);
 }
 
@@ -279,11 +295,11 @@
   padding: 2px 7px;
   border-radius: 5px;
   color: #fff;
-  font-family: 'JetBrains Mono', monospace;
+  font-family: var(--font-mono);
   font-size: 11px;
 }
 
-/* Static control layout; dynamic solver styles remain with the solver controls. */
+/* Bố cục các nút điều khiển. */
 .stage-title { font-weight: 700; color: #fff; font-size: 15px; }
 .stage-picker-action { margin-top: 10px; }
 .current-tile-label { font-size: 12.5px; color: #38bdf8; }
@@ -292,3 +308,29 @@
 .dfs-main { flex: 1; }
 .dfs-toggle { padding: 0 10px; border-radius: 12px; background: rgba(6, 182, 212, 0.2); border: 1px solid rgba(6, 182, 212, 0.4); color: #38bdf8; font-size: 11px; font-weight: 700; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; white-space: nowrap; }
 .restart-card { margin-top: auto; }
+
+@media (max-width: 1100px) {
+  .game-layout { grid-template-columns: minmax(0, 1fr) 310px; padding: 18px; gap: 16px; }
+  .hud-sidebar { padding: 12px; }
+  .telemetry-val { font-size: 12px; }
+  .telemetry-key { font-size: 12px; }
+  .counter-hero { font-size: 24px; }
+  .dock-bar > span:nth-child(even) { display: none; }
+}
+
+@media (max-width: 900px) {
+  .game-layout { display: flex; flex-direction: column; overflow-y: auto; }
+  .brand-dock { flex: none; order: 0; }
+  .game-viewport { flex: none; order: 1; height: clamp(300px, 55vw, 480px); }
+  .dock-bar { flex: none; order: 2; }
+  .hud-sidebar { flex: none; order: 3; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); overflow: visible; align-items: start; }
+  .restart-card { margin-top: 0; }
+}
+
+@media (max-width: 600px) {
+  .game-layout { padding: 12px; gap: 12px; }
+  .game-header-note { font-size: 11px; }
+  .hud-sidebar { grid-template-columns: minmax(0, 1fr); }
+  .dock-bar { justify-content: flex-start; line-height: 2; }
+  .brand-title { font-size: 20px; }
+}

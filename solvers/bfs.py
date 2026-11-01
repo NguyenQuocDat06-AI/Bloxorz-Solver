@@ -1,15 +1,4 @@
-"""
-=============================================================================
-THUẬT TOÁN: BREADTH-FIRST SEARCH (BFS)
-NGƯỜI PHỤ TRÁCH: PHÚC
-=============================================================================
-Yêu cầu theo đề bài:
-1. Sử dụng hàng đợi FIFO (collections.deque) để duyệt không gian trạng thái theo chiều rộng.
-2. Đảm bảo tìm ra đường đi ngắn nhất theo số lượng bước đi.
-3. Sử dụng tập visited (set) để lưu vết các GameState đã duyệt, tránh lặp vô hạn.
-4. Đếm chính xác số node đã mở rộng (expanded_nodes) mỗi khi pop một node ra khỏi hàng đợi.
-=============================================================================
-"""
+"""BFS tìm đường đi ít hành động nhất."""
 from collections import deque
 from typing import List, Set
 from .base import BaseSolver, SearchResult
@@ -24,7 +13,6 @@ class BFSSolver(BaseSolver):
     def _search(self, problem: BloxorzProblem) -> SearchResult:
         start_state = problem.get_initial_state()
 
-        # Kiểm tra tính hợp lệ của trạng thái xuất phát (tránh start nằm trên void hoặc gạch vỡ)
         if not problem.is_valid_state(start_state):
             return SearchResult(
                 status="NOT_FOUND",
@@ -34,7 +22,6 @@ class BFSSolver(BaseSolver):
                 cost=0.0
             )
 
-        # Kiểm tra nếu trạng thái bắt đầu đã là đích
         if problem.is_goal(start_state):
             return SearchResult(
                 status="FOUND",
@@ -44,10 +31,8 @@ class BFSSolver(BaseSolver):
                 cost=0.0
             )
 
-        # Hàng đợi FIFO lưu tuple: (current_state, path)
         queue = deque([(start_state, [])])
 
-        # Tập visited lưu các trạng thái đã ghé thăm nhằm tránh lặp vô tận
         visited: Set[GameState] = {start_state}
         expanded_nodes = 0
 
@@ -61,7 +46,7 @@ class BFSSolver(BaseSolver):
                 if next_state is not None and next_state not in visited:
                     new_path = path + [action.value]
 
-                    # Early goal test theo chuẩn AIMA để tối ưu số node mở rộng
+                    # Kiểm tra đích khi sinh; không tính đích vào expanded_nodes.
                     if problem.is_goal(next_state):
                         return SearchResult(
                             status="FOUND",
@@ -74,7 +59,6 @@ class BFSSolver(BaseSolver):
                     visited.add(next_state)
                     queue.append((next_state, new_path))
 
-        # Nếu duyệt hết không gian trạng thái mà không tìm thấy đường đi tới đích
         return SearchResult(
             status="NOT_FOUND",
             path=[],

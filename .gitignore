@@ -52,3 +52,8 @@ scratch/
 /docs/
 *.[mM][dD]
 !README.md
+
+# Local submission files
+/report/
+/submission/
+/web/tests/

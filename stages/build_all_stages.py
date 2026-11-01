@@ -8,7 +8,6 @@ if sys.stdout.encoding and sys.stdout.encoding.lower() != 'utf-8':
     except Exception:
         pass
 
-# Đảm bảo import được module core
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from collections import deque
@@ -38,11 +37,9 @@ def solve_with_bfs(problem: BloxorzProblem):
 def main():
     stages_data = []
 
-    # =========================================================================
-    # GROUP 1: BASIC MECHANICS (Stages 1 - 5)
-    # =========================================================================
+    # Màn 1–5: cơ bản.
 
-    # Stage 01: The Beginning (Classic 7 moves)
+    # Màn 01.
     stages_data.append({
         "filename": "stage_01.json",
         "name": "Stage 01 - The Beginning",
@@ -59,7 +56,7 @@ def main():
         ]
     })
 
-    # Stage 02: S-Curve
+    # Màn 02.
     stages_data.append({
         "filename": "stage_02.json",
         "name": "Stage 02 - S-Curve",
@@ -79,7 +76,7 @@ def main():
         ]
     })
 
-    # Stage 03: Narrow Spiral
+    # Màn 03.
     stages_data.append({
         "filename": "stage_03.json",
         "name": "Stage 03 - Narrow Spiral",
@@ -98,7 +95,7 @@ def main():
         ]
     })
 
-    # Stage 04: Stepping Stones
+    # Màn 04.
     stages_data.append({
         "filename": "stage_04.json",
         "name": "Stage 04 - Stepping Stones",
@@ -118,7 +115,7 @@ def main():
         ]
     })
 
-    # Stage 05: The Labyrinth Island
+    # Màn 05.
     stages_data.append({
         "filename": "stage_05.json",
         "name": "Stage 05 - The Labyrinth Island",
@@ -136,11 +133,9 @@ def main():
         ]
     })
 
-    # =========================================================================
-    # GROUP 2: FRAGILE TILES (Stages 6 - 9)
-    # =========================================================================
+    # Màn 6–9: ô yếu.
 
-    # Stage 06: Fragile Runway
+    # Màn 06.
     stages_data.append({
         "filename": "stage_06.json",
         "name": "Stage 06 - Fragile Runway",
@@ -155,7 +150,7 @@ def main():
         ]
     })
 
-    # Stage 07: Checkerboard Fragile
+    # Màn 07.
     stages_data.append({
         "filename": "stage_07.json",
         "name": "Stage 07 - Checkerboard Fragile",
@@ -172,7 +167,7 @@ def main():
         ]
     })
 
-    # Stage 08: The Thin Bridge
+    # Màn 08.
     stages_data.append({
         "filename": "stage_08.json",
         "name": "Stage 08 - The Thin Bridge",
@@ -188,7 +183,7 @@ def main():
         ]
     })
 
-    # Stage 09: Fragile Matrix
+    # Màn 09.
     stages_data.append({
         "filename": "stage_09.json",
         "name": "Stage 09 - Fragile Matrix",
@@ -206,11 +201,9 @@ def main():
         ]
     })
 
-    # =========================================================================
-    # GROUP 3: BRIDGES & SWITCHES (Stages 10 - 15)
-    # =========================================================================
+    # Màn 10–15: cầu và công tắc.
 
-    # Stage 10: First Bridge (Soft Switch + Bridge)
+    # Màn 10.
     stages_data.append({
         "filename": "stage_10.json",
         "name": "Stage 10 - First Bridge",
@@ -239,7 +232,7 @@ def main():
         ]
     })
 
-    # Stage 11: Heavy Switch Trial
+    # Màn 11.
     stages_data.append({
         "filename": "stage_11.json",
         "name": "Stage 11 - Heavy Switch Trial",
@@ -271,7 +264,7 @@ def main():
         ]
     })
 
-    # Stage 12: Dual Bridge Causeway
+    # Màn 12.
     stages_data.append({
         "filename": "stage_12.json",
         "name": "Stage 12 - Dual Bridge Causeway",
@@ -310,13 +303,13 @@ def main():
         ]
     })
 
-    # Stage 13: Toggle Bypass
+    # Màn 13.
     stages_data.append({
         "filename": "stage_13.json",
         "name": "Stage 13 - Toggle Bypass",
         "difficulty": "Hard",
         "start": [1, 1],
-        "goal": [6, 6],
+        "goal": [6, 7],
         "grid": [
             [1, 1, 1, 1, 0, 0, 0, 0],
             [1, 1, 1, 1, 0, 0, 0, 0],
@@ -342,7 +335,7 @@ def main():
         ]
     })
 
-    # Stage 14: Permanent Gate
+    # Màn 14.
     stages_data.append({
         "filename": "stage_14.json",
         "name": "Stage 14 - Permanent Gate",
@@ -372,7 +365,7 @@ def main():
         ]
     })
 
-    # Stage 15: The Island Outpost
+    # Màn 15.
     stages_data.append({
         "filename": "stage_15.json",
         "name": "Stage 15 - The Island Outpost",
@@ -404,11 +397,9 @@ def main():
         ]
     })
 
-    # =========================================================================
-    # GROUP 4: ADVANCED COMBINATIONS & SPLIT SWITCH (Stages 16 - 20)
-    # =========================================================================
+    # Màn 16–20: phối hợp cơ chế và tách khối.
 
-    # Stage 16: Fragile Pass with Bridge
+    # Màn 16.
     stages_data.append({
         "filename": "stage_16.json",
         "name": "Stage 16 - Fragile Pass with Bridge",
@@ -437,7 +428,7 @@ def main():
         ]
     })
 
-    # Stage 17: The Perilous Peak
+    # Màn 17.
     stages_data.append({
         "filename": "stage_17.json",
         "name": "Stage 17 - The Perilous Peak",
@@ -468,7 +459,7 @@ def main():
         ]
     })
 
-    # Stage 18: Teleport Split Trial
+    # Màn 18.
     stages_data.append({
         "filename": "stage_18.json",
         "name": "Stage 18 - Teleport Split Trial",
@@ -507,7 +498,7 @@ def main():
         ]
     })
 
-    # Stage 19: The Citadel Maze
+    # Màn 19.
     stages_data.append({
         "filename": "stage_19.json",
         "name": "Stage 19 - The Citadel Maze",
@@ -539,7 +530,7 @@ def main():
         ]
     })
 
-    # Stage 20: Grandmaster Void
+    # Màn 20.
     stages_data.append({
         "filename": "stage_20.json",
         "name": "Stage 20 - Grandmaster Void",
@@ -602,7 +593,6 @@ def main():
         with open(filepath, "w", encoding="utf-8") as f:
             json.dump(save_obj, f, indent=2)
 
-        # Kiểm tra tính giải được bằng BFS
         board = Board.from_json(filepath)
         problem = BloxorzProblem(board)
         sol = solve_with_bfs(problem)

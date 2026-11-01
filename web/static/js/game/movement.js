@@ -5,11 +5,12 @@ export function createMovement(state, view, { playAudio, syncBlockTransform, tri
   const { THREE } = view;
   function roll(dir, onComplete = null) {
     if (state.isRolling || state.gameState !== "PLAYING") return;
+    const runId = state.runId, stageFile = state.currentStageFile;
+    const isCurrentRun = () => state.runId === runId && state.currentStageFile === stageFile;
     state.isRolling = true; playAudio('roll');
 
     const u = TILE_SCALE, half = u * 0.5;
 
-    // Xử lý lăn khi đang ở trạng thái phân tách thành 2 khối 1x1x1 độc lập (Pivot Rotation 3D)
     if (state.blockOrient === 3) {
       let dr = 0, dc = 0;
       if (dir === 'UP') dr = -1;
@@ -32,10 +33,13 @@ export function createMovement(state, view, { playAudio, syncBlockTransform, tri
 
       const startPos = curTargetCube.position.clone();
       const relPos = new THREE.Vector3().subVectors(startPos, pivot);
-      const startTime = performance.now();
+      const getTime = () => (window.__virtualTime !== undefined ? window.__virtualTime : performance.now());
+      const startTime = getTime();
 
       function animateSingle(t) {
-        const progress = Math.min((t - startTime) / ROLL_DURATION, 1.0);
+        if (!isCurrentRun()) return;
+        const curT = window.__virtualTime !== undefined ? window.__virtualTime : (t || performance.now());
+        const progress = Math.min((curT - startTime) / ROLL_DURATION, 1.0);
         const ease = 0.5 - Math.cos(progress * Math.PI) * 0.5;
         const angle = ease * (Math.PI / 2);
 
@@ -43,7 +47,6 @@ export function createMovement(state, view, { playAudio, syncBlockTransform, tri
         curTargetCube.position.copy(relPos.clone().applyQuaternion(q).add(pivot));
         curTargetCube.quaternion.copy(q);
 
-        // Cập nhật vòng hào quang activeMarker bám sát trên đầu khối đang lăn
         if (view.activeMarker.visible) {
           view.activeMarker.position.x = curTargetCube.position.x;
           view.activeMarker.position.z = curTargetCube.position.z;
@@ -63,7 +66,6 @@ export function createMovement(state, view, { playAudio, syncBlockTransform, tri
           }
           state.moves++;
 
-          // Kiểm tra tự động hút ghép lại thành khối 1x1x2 khi 2 khối con đi tới 2 ô kề nhau
           const merged = tryMergeCubes(state.blockR, state.blockC, state.blockR2, state.blockC2);
           if (merged) {
             triggerMerge(merged, onComplete);
@@ -107,10 +109,13 @@ export function createMovement(state, view, { playAudio, syncBlockTransform, tri
 
     const startPos = view.blockMaster.position.clone();
     const relPos = new THREE.Vector3().subVectors(startPos, pivot);
-    const startTime = performance.now();
+    const getTime = () => (window.__virtualTime !== undefined ? window.__virtualTime : performance.now());
+    const startTime = getTime();
 
     function animateRoll(t) {
-      const progress = Math.min((t - startTime) / ROLL_DURATION, 1.0);
+      if (!isCurrentRun()) return;
+      const curT = window.__virtualTime !== undefined ? window.__virtualTime : (t || performance.now());
+      const progress = Math.min((curT - startTime) / ROLL_DURATION, 1.0);
       const ease = 0.5 - Math.cos(progress * Math.PI) * 0.5;
       const angle = ease * (Math.PI / 2);
 

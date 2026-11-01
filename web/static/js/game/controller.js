@@ -4,12 +4,12 @@ import { createSplitAnimations } from './split.js';
 import { createMovement } from './movement.js';
 import { createStatusController } from './status.js';
 
-export function createGameController(state, view, hud, radar, audio) {
+export function createGameController(state, view, hud, radar, audio, { onWin = () => {}, onGoal = () => {}, onReset = () => {} } = {}) {
   const { playAudio } = audio;
   const { drawRadar } = radar;
   const { syncBlockTransform } = createBlockRenderer(state, view, hud);
   const { triggerSwitches } = createBridgeController(state, view, { playAudio, drawRadar });
-  // Callbacks resolve after all controllers are constructed, avoiding circular imports.
+  // Callback tránh phụ thuộc vòng giữa các controller.
   let status;
   const checkGameStatus = (...args) => status.checkGameStatus(...args);
   const { triggerSplit, triggerMerge } = createSplitAnimations(state, view, {
@@ -19,11 +19,13 @@ export function createGameController(state, view, hud, radar, audio) {
     playAudio, syncBlockTransform, triggerMerge, checkGameStatus,
   });
   status = createStatusController(state, view, {
-    playAudio, triggerSwitches, triggerSplit, resetStage,
+    playAudio, triggerSwitches, triggerSplit, resetStage, onWin, onGoal,
   });
 
   function resetStage() {
     if (!state.currentStageData) return;
+    state.runId++;
+    onReset();
     state.blockR = state.currentStageData.start[0];
     state.blockC = state.currentStageData.start[1];
     state.blockR2 = state.blockR;
@@ -33,10 +35,14 @@ export function createGameController(state, view, hud, radar, audio) {
     state.moves = 0;
     state.gameState = "PLAYING";
     state.isRolling = false;
+    view.cubeA.rotation.set(0, 0, 0);
+    view.cubeB.rotation.set(0, 0, 0);
     document.getElementById('ui-status').className = 'status-badge status-playing';
-    document.getElementById('ui-status').textContent = 'PLAYING';
+    document.getElementById('ui-status').textContent = 'Đang chơi';
+    ['bm-algo', 'bm-time', 'bm-mem', 'bm-nodes', 'bm-steps'].forEach(id => {
+      document.getElementById(id).textContent = '---';
+    });
 
-    // Khôi phục trạng thái ban đầu của các cây cầu
     if (state.currentStageData.bridges) {
       for (const [bId, bInfo] of Object.entries(state.currentStageData.bridges)) {
         const initOpen = (bInfo.initial_open === true);
@@ -49,7 +55,6 @@ export function createGameController(state, view, hud, radar, audio) {
       }
     }
 
-    // Khôi phục vị trí của các cụm công tắc
     Object.values(view.switchMeshes).forEach(swObj => {
       if (swObj && swObj.group) {
         swObj.group.position.y = swObj.baseY;

@@ -10,6 +10,7 @@ export function createGameState() {
     blockOrient: 0,
     moves: 0,
     gameState: "PLAYING",
+    runId: 0,
     isRolling: false,
     blockR2: 1,
     blockC2: 1,

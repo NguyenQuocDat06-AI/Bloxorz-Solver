@@ -1,15 +1,24 @@
 
+import { DIFFICULTY_LABELS, TILE_SCALE } from '../config.js';
+import { clearBoard } from './dispose.js';
+
 export function createBoardBuilder(state, view, { buildTiles, resetStage, setCamera, drawRadar }) {
   function buildBoard(data) {
     state.currentStageData = data;
     state.currentGrid = data.grid;
 
-    // Xóa các mesh ô sàn cũ
-    while (view.boardGroup.children.length > 0) {
-      view.boardGroup.remove(view.boardGroup.children[0]);
-    }
+    // Căn vùng đổ bóng theo kích thước bàn cờ.
+    const rows = data.grid.length, cols = data.grid[0].length;
+    const centerX = (cols - 1) * TILE_SCALE / 2, centerZ = (rows - 1) * TILE_SCALE / 2;
+    const light = view.keyLight;
+    light.position.set(centerX - 22, 45, centerZ + 18);
+    light.target.position.set(centerX, 0, centerZ);
+    const extent = Math.hypot(cols, rows) * TILE_SCALE / 2 + 4;
+    Object.assign(light.shadow.camera, { left: -extent, right: extent, top: extent, bottom: -extent, near: 0.5, far: 100 });
+    light.shadow.camera.updateProjectionMatrix();
 
-    // Khởi tạo và thiết lập lại bản đồ cầu nối và công tắc
+    clearBoard(view);
+
     state.stageBridges = data.bridges || {};
     state.bridgeStates = {};
     state.bridgeCellToId = {};
@@ -34,8 +43,8 @@ export function createBoardBuilder(state, view, { buildTiles, resetStage, setCam
         if (sw.pos && sw.pos.length === 2) {
           const key = `${sw.pos[0]},${sw.pos[1]}`;
           state.switchMap[key] = {
-            type: sw.type,
-            behavior: sw.behavior || 'toggle',
+            type: typeof sw.type === 'string' ? sw.type.toUpperCase() : sw.type,
+            behavior: (sw.behavior || 'toggle').toLowerCase(),
             linked_bridges: sw.linked_bridges || [],
             split_targets: sw.split_targets || null
           };
@@ -45,18 +54,15 @@ export function createBoardBuilder(state, view, { buildTiles, resetStage, setCam
 
     buildTiles();
 
-    // Cập nhật thông tin HUD động từ file stage JSON hoặc từ danh sách đã nạp
     const stageName = data.name || (state.loadedStages.find(s => s.id === state.currentStageFile)?.name) || state.currentStageFile;
     const stageDiff = String(data.difficulty || (state.loadedStages.find(s => s.id === state.currentStageFile)?.diff) || "medium").toLowerCase();
     document.getElementById('hud-stage-name').textContent = stageName;
     const diffEl = document.getElementById('hud-stage-diff');
-    diffEl.textContent = stageDiff.toUpperCase();
+    diffEl.textContent = DIFFICULTY_LABELS[stageDiff] || stageDiff;
     diffEl.className = `diff-badge diff-${stageDiff}`;
 
-    // Đặt vị trí khối hộp ban đầu
     resetStage();
 
-    // Tự động căn chỉnh camera và độ phóng to thích ứng theo kích thước stage mới
     setCamera(state.currentCameraMode);
     drawRadar();
   }

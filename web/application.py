@@ -1,4 +1,4 @@
-"""Compose server dependencies without launching a browser or binding a port on import."""
+"""Tạo máy chủ HTTP và các dịch vụ."""
 from functools import partial
 from http.server import ThreadingHTTPServer
 from pathlib import Path

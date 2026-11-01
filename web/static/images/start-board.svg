@@ -1,0 +1,79 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="500" height="500" viewBox="96 80 500 500" fill="none">
+  <title>Bàn cờ Bloxorz, màn 01</title>
+  <defs>
+    <linearGradient id="floor" x1="0" y1="-22" x2="0" y2="22" gradientUnits="userSpaceOnUse"><stop stop-color="#3c5964"/><stop offset="1" stop-color="#293f49"/></linearGradient>
+    <linearGradient id="block-left" x1="229" y1="128" x2="260" y2="283" gradientUnits="userSpaceOnUse"><stop stop-color="#d58c4d"/><stop offset="1" stop-color="#ae6434"/></linearGradient>
+    <linearGradient id="block-right" x1="268" y1="135" x2="280" y2="275" gradientUnits="userSpaceOnUse"><stop stop-color="#f1bc78"/><stop offset="1" stop-color="#d49451"/></linearGradient>
+    <linearGradient id="block-top" x1="240" y1="115" x2="275" y2="144" gradientUnits="userSpaceOnUse"><stop stop-color="#ffe2aa"/><stop offset="1" stop-color="#efba76"/></linearGradient>
+    <radialGradient id="ambient"><stop stop-color="#4d9b8e" stop-opacity=".14"/><stop offset="1" stop-color="#4d9b8e" stop-opacity="0"/></radialGradient>
+    <filter id="shadow" x="-30%" y="-40%" width="160%" height="200%"><feGaussianBlur stdDeviation="16"/></filter>
+    <filter id="glow" x="-80%" y="-100%" width="260%" height="300%"><feGaussianBlur stdDeviation="6"/></filter>
+    <g id="tile">
+      <path d="M-40 0 0 22V36L-40 14Z" fill="#1b2d36" stroke="#2b424b" stroke-width=".7"/>
+      <path d="m0 22 40-22v14L0 36Z" fill="#14242c" stroke="#263c46" stroke-width=".7"/>
+      <path d="m0-22 40 22L0 22-40 0Z" fill="url(#floor)" stroke="#66818b" stroke-opacity=".72" stroke-width=".9"/>
+      <path d="m-35 0 35-19L35 0" stroke="#9bb9bf" stroke-opacity=".14" stroke-width=".8"/>
+    </g>
+  </defs>
+  <ellipse cx="350" cy="390" rx="310" ry="210" fill="url(#ambient)"/>
+  <g stroke="#6d9c9d" stroke-opacity=".08" stroke-width=".8">
+    <path d="M42 340 350 170 658 340 350 510Z"/>
+    <path d="M6 340 350 150 694 340 350 530Z" stroke-dasharray="4 9"/>
+    <path d="m350 114 0 447M0 340h700" stroke-dasharray="2 9"/>
+  </g>
+  <ellipse cx="355" cy="435" rx="208" ry="78" fill="#020809" opacity=".68" filter="url(#shadow)"/>
+  <use href="#tile" x="260" y="220"/>
+  <use href="#tile" x="302" y="243"/>
+  <use href="#tile" x="344" y="266"/>
+  <use href="#tile" x="218" y="243"/>
+  <use href="#tile" x="260" y="266"/>
+  <use href="#tile" x="302" y="289"/>
+  <use href="#tile" x="344" y="312"/>
+  <use href="#tile" x="386" y="335"/>
+  <use href="#tile" x="428" y="358"/>
+  <use href="#tile" x="176" y="266"/>
+  <use href="#tile" x="218" y="289"/>
+  <use href="#tile" x="260" y="312"/>
+  <use href="#tile" x="302" y="335"/>
+  <use href="#tile" x="344" y="358"/>
+  <use href="#tile" x="386" y="381"/>
+  <use href="#tile" x="428" y="404"/>
+  <use href="#tile" x="470" y="427"/>
+  <use href="#tile" x="512" y="450"/>
+  <use href="#tile" x="176" y="312"/>
+  <use href="#tile" x="218" y="335"/>
+  <use href="#tile" x="260" y="358"/>
+  <use href="#tile" x="302" y="381"/>
+  <use href="#tile" x="344" y="404"/>
+  <use href="#tile" x="386" y="427"/>
+  <use href="#tile" x="428" y="450"/>
+  <use href="#tile" x="470" y="473"/>
+  <use href="#tile" x="512" y="496"/>
+  <use href="#tile" x="302" y="427"/>
+  <use href="#tile" x="344" y="450"/>
+  <use href="#tile" x="386" y="473"/>
+  <g transform="translate(386 473)">
+    <path d="m0-17 32 17L0 17-32 0Z" stroke="#79e6cf" stroke-width="5" opacity=".4" filter="url(#glow)"/>
+    <path d="m0-17 32 17L0 17-32 0Z" fill="#08181d" stroke="#79e6cf" stroke-width="1.8"/>
+    <path d="M-30 0 0 16 30 0M0 16V4" stroke="#347e74" stroke-width="1"/>
+    <path d="m-15 4 15-8 15 8-15 8Z" fill="#79e6cf" opacity=".12"/>
+  </g>
+  <use href="#tile" x="428" y="496"/>
+  <use href="#tile" x="470" y="519"/>
+  <use href="#tile" x="302" y="473"/>
+  <use href="#tile" x="344" y="496"/>
+  <use href="#tile" x="386" y="519"/>
+  <path d="m260 247 100 55-40 21-100-55Z" fill="#081115" opacity=".35"/>
+  <g stroke-linejoin="round">
+    <path d="m229 128 31 17v138l-31-17Z" fill="url(#block-left)" stroke="#d9985b" stroke-width="1"/>
+    <path d="m260 145 31-17v138l-31 17Z" fill="url(#block-right)" stroke="#efbc7c" stroke-width="1"/>
+    <path d="m260 111 31 17-31 17-31-17Z" fill="url(#block-top)" stroke="#ffe0a8" stroke-width="1.2"/>
+    <path d="m234 142 20 11v116l-20-11Z" stroke="#9e582f" stroke-opacity=".4" stroke-width=".8"/>
+    <path d="m266 153 19-10v115l-19 11Z" stroke="#ffe0a2" stroke-opacity=".25" stroke-width=".8"/>
+    <path d="M260 148v132" stroke="#fff0c0" stroke-opacity=".35"/>
+  </g>
+  <g stroke="#8aaeb1" stroke-width=".8" opacity=".4">
+    <path d="M95 225v-9h9M595 492v9h-9"/>
+    <path d="M105 216h16M569 501h16" opacity=".4"/>
+  </g>
+</svg>

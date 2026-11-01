@@ -1,4 +1,4 @@
-"""Paths and defaults shared by the local web server."""
+"""Đường dẫn và cấu hình mặc định của máy chủ."""
 from pathlib import Path
 
 WEB_DIR = Path(__file__).resolve().parent

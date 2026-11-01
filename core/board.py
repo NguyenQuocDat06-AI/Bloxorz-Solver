@@ -5,28 +5,26 @@ from dataclasses import dataclass
 
 
 class TileType(IntEnum):
-    """Phân loại các ô trên mặt sàn"""
-    VOID = 0           # Khoảng trống / Vực thẳm (rơi = thua)
-    FLOOR = 1          # Ô bình thường, chịu được khối ở mọi tư thế
-    FRAGILE = 2        # Gạch vỡ màu cam (chỉ chịu được khi khối nằm, đứng lên sẽ vỡ)
-    BRIDGE = 3         # Ô cầu nối (mở thì là FLOOR, đóng thì là VOID)
-    SOFT_SWITCH = 4    # Công tắc mềm (hình tròn/bát giác): kích hoạt khi đè lên ở bất kỳ tư thế nào
-    HEAVY_SWITCH = 5   # Công tắc nặng (hình chữ X): chỉ kích hoạt khi khối ĐỨNG thẳng lên
-    SPLIT_SWITCH = 6   # Công tắc tách khối: chỉ kích hoạt khi khối ĐỨNG thẳng lên
-    GOAL = 9           # Ô đích (chỉ thắng khi khối ĐỨNG thẳng lên ô này)
+    """Mã các loại ô trong JSON."""
+    VOID = 0  # Khoảng trống.
+    FLOOR = 1  # Sàn thường.
+    FRAGILE = 2  # Chỉ đỡ khối nằm.
+    BRIDGE = 3  # Chỉ đi được khi cầu mở.
+    SOFT_SWITCH = 4  # Nhận mọi tư thế, kể cả khối đơn.
+    HEAVY_SWITCH = 5  # Chỉ nhận khối đứng.
+    SPLIT_SWITCH = 6  # Tách khi khối đứng.
+    GOAL = 9  # Thắng khi khối đứng.
 
 
 class SwitchBehavior(str, Enum):
-    """Hành vi của công tắc khi được kích hoạt."""
-    TOGGLE = "toggle"             # Đảo trạng thái cầu (Đóng <-> Mở)
-    PERMANENT_OPEN = "perm_open"   # Luôn mở cầu sau khi kích hoạt
-    PERMANENT_CLOSE = "perm_close" # Luôn đóng cầu sau khi kích hoạt
-    PERMANENT = "permanent"       # Chuẩn Section 2.5: Cố định trạng thái mở sau khi kích hoạt
+    TOGGLE = "toggle"
+    PERMANENT_OPEN = "perm_open"
+    PERMANENT_CLOSE = "perm_close"
+    PERMANENT = "permanent"  # Bí danh của perm_open.
 
 
 @dataclass
 class Bridge:
-    """Đại diện một cây cầu được điều khiển bởi công tắc."""
     bridge_id: str
     cells: List[Tuple[int, int]]
     initial_open: bool = False
@@ -34,20 +32,17 @@ class Bridge:
 
 @dataclass
 class Switch:
-    """Đại diện một công tắc kích hoạt trên bản đồ."""
     r: int
     c: int
     switch_type: TileType
     behavior: SwitchBehavior
     linked_bridge_ids: List[str]
-    # Tọa độ dịch chuyển khi rơi vào SPLIT_SWITCH: ((r1, c1), (r2, c2))
+    # Hai vị trí sau khi tách.
     split_targets: Optional[Tuple[Tuple[int, int], Tuple[int, int]]] = None
 
 
 class Board:
-    """
-    Biểu diễn bàn cờ Bloxorz đọc từ file JSON / cấu hình.
-    """
+    """Bàn cờ, cầu và công tắc."""
     def __init__(
         self,
         grid: List[List[int]],
@@ -64,12 +59,10 @@ class Board:
         self.bridges = bridges or {}
         self.switches = switches or []
 
-        # Tra cứu nhanh công tắc theo tọa độ
         self.switch_map: Dict[Tuple[int, int], Switch] = {
             (sw.r, sw.c): sw for sw in self.switches
         }
 
-        # Tra cứu nhanh ô nào thuộc cầu nào
         self.bridge_cell_map: Dict[Tuple[int, int], str] = {}
         for b_id, bridge in self.bridges.items():
             for cell in bridge.cells:
@@ -77,7 +70,6 @@ class Board:
 
     @classmethod
     def from_json(cls, file_path: str) -> "Board":
-        """Đọc và khởi tạo bàn cờ từ file JSON chuẩn."""
         with open(file_path, "r", encoding="utf-8") as f:
             data = json.load(f)
 
@@ -120,6 +112,6 @@ class Board:
         return cls(grid, start_pos, goal_pos, bridges, switches)
 
     def get_initial_bridges_tuple(self) -> Tuple[Tuple[str, bool], ...]:
-        """Tạo tuple trạng thái cầu ban đầu (được sắp xếp theo ID) để khởi tạo GameState."""
+        """Trạng thái cầu sắp theo ID để băm nhất quán."""
         states = [(b_id, bridge.initial_open) for b_id, bridge in sorted(self.bridges.items())]
         return tuple(states)

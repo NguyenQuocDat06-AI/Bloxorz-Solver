@@ -1,4 +1,5 @@
 import { TILE_SCALE } from '../config.js';
+import { buildGoal } from './goal.js';
 
 export function createTileRenderer(state, view) {
   const { THREE } = view;
@@ -12,7 +13,7 @@ export function createTileRenderer(state, view) {
         const x = c * TILE_SCALE, z = r * TILE_SCALE;
 
         if (type === 1) {
-          // 1. SÀN CHUẨN (STANDARD FLOOR)
+          // Sàn thường.
           const tMesh = new THREE.Mesh(
             new THREE.BoxGeometry(TILE_SCALE * 0.96, 0.35, TILE_SCALE * 0.96),
             [view.sideMat, view.sideMat, view.tileMat, view.sideMat, view.sideMat, view.sideMat]
@@ -22,7 +23,7 @@ export function createTileRenderer(state, view) {
           view.boardGroup.add(tMesh);
         }
         else if (type === 2) {
-          // 2. GẠCH VỠ MÀU CAM (FRAGILE TILE) - Mỏng hơn, bề mặt nứt nẻ
+          // Ô yếu.
           const fragMesh = new THREE.Mesh(
             new THREE.BoxGeometry(TILE_SCALE * 0.96, 0.20, TILE_SCALE * 0.96),
             [view.fragileSideMat, view.fragileSideMat, view.fragileMat, view.fragileSideMat, view.fragileSideMat, view.fragileSideMat]
@@ -32,7 +33,7 @@ export function createTileRenderer(state, view) {
           view.boardGroup.add(fragMesh);
         }
         else if (type === 3) {
-          // 3. CẦU NỐI KIM LOẠI (BRIDGE) - Nan kim loại, 2 gờ ray LED cyan hai bên
+          // Cầu.
           const bId = state.bridgeCellToId[`${r},${c}`];
           const brGroup = new THREE.Group();
 
@@ -44,7 +45,6 @@ export function createTileRenderer(state, view) {
           brMesh.receiveShadow = true;
           brGroup.add(brMesh);
 
-          // Hai dải gờ ray phát sáng hai bên hông cầu
           const railGeo = new THREE.BoxGeometry(0.08, 0.16, TILE_SCALE * 0.94);
           const railMat = new THREE.MeshStandardMaterial({ color: 0x00f2fe, emissive: 0x00f2fe, emissiveIntensity: 0.8 });
           const railLeft = new THREE.Mesh(railGeo, railMat);
@@ -66,7 +66,7 @@ export function createTileRenderer(state, view) {
           }
         }
         else if (type === 4) {
-          // 4. CÔNG TẮC MỀM (SOFT SWITCH) - Đế kim loại tròn, nút bấm tròn vàng hổ phách có thể thụt xuống
+          // Công tắc mềm.
           const baseMesh = new THREE.Mesh(
             new THREE.BoxGeometry(TILE_SCALE * 0.96, 0.35, TILE_SCALE * 0.96),
             [view.sideMat, view.sideMat, view.tileMat, view.sideMat, view.sideMat, view.sideMat]
@@ -79,7 +79,6 @@ export function createTileRenderer(state, view) {
           ringPlate.position.set(x, 0.03, z);
           view.boardGroup.add(ringPlate);
 
-          // Cụm nút bấm tròn có animation ấn nảy cơ học
           const swBtnGroup = new THREE.Group();
           swBtnGroup.position.set(x, 0, z);
 
@@ -101,7 +100,7 @@ export function createTileRenderer(state, view) {
           };
         }
         else if (type === 5) {
-          // 5. CÔNG TẮC NẶNG (HEAVY SWITCH) - Đế thép có 4 ốc vít, dấu X đỏ ruby nổi khối có thể thụt xuống
+          // Công tắc nặng.
           const baseMesh = new THREE.Mesh(
             new THREE.BoxGeometry(TILE_SCALE * 0.96, 0.35, TILE_SCALE * 0.96),
             [view.sideMat, view.sideMat, view.tileMat, view.sideMat, view.sideMat, view.sideMat]
@@ -122,7 +121,6 @@ export function createTileRenderer(state, view) {
             view.boardGroup.add(bolt);
           });
 
-          // Cụm dấu X đỏ ruby có animation ấn nảy cơ học
           const heavyGroup = new THREE.Group();
           heavyGroup.position.set(x, 0, z);
 
@@ -149,7 +147,7 @@ export function createTileRenderer(state, view) {
           };
         }
         else if (type === 6) {
-          // 6. CÔNG TẮC TÁCH KHỐI (SPLIT SWITCH) - Vòng ma thuật tím & Tinh thể bát diện lơ lửng
+          // Công tắc phân tách.
           const baseMesh = new THREE.Mesh(
             new THREE.BoxGeometry(TILE_SCALE * 0.96, 0.35, TILE_SCALE * 0.96),
             [view.sideMat, view.sideMat, view.tileMat, view.sideMat, view.sideMat, view.sideMat]
@@ -174,7 +172,7 @@ export function createTileRenderer(state, view) {
           view.boardGroup.add(crystal);
         }
         else if (type === 7) {
-          // 7. Ô DỊCH CHUYỂN / SPECIAL (TELEPORT) - Cổng không gian ngọc lục bảo
+          // Ô dịch chuyển.
           const baseMesh = new THREE.Mesh(
             new THREE.BoxGeometry(TILE_SCALE * 0.96, 0.35, TILE_SCALE * 0.96),
             [view.sideMat, view.sideMat, view.tileMat, view.sideMat, view.sideMat, view.sideMat]
@@ -200,29 +198,7 @@ export function createTileRenderer(state, view) {
           view.boardGroup.add(gem);
         }
         else if (type === 9) {
-          // 9. Ô ĐÍCH (GOAL PIT) - Hố đen sâu thẳm, viền vàng hổ phách, vòng hào quang xoay
-          const frame = new THREE.Mesh(
-            new THREE.BoxGeometry(TILE_SCALE * 0.98, 0.28, TILE_SCALE * 0.98),
-            view.goalFrameMat
-          );
-          frame.position.set(x, -0.12, z);
-          view.boardGroup.add(frame);
-
-          const pit = new THREE.Mesh(
-            new THREE.BoxGeometry(TILE_SCALE * 0.82, 6.0, TILE_SCALE * 0.82),
-            new THREE.MeshBasicMaterial({ color: 0x000000 })
-          );
-          pit.position.set(x, -3.0, z);
-          view.boardGroup.add(pit);
-
-          const halo = new THREE.Mesh(
-            new THREE.TorusGeometry(0.56, 0.05, 16, 32),
-            view.goalHaloMat
-          );
-          halo.name = "goalHalo";
-          halo.rotation.x = Math.PI / 2;
-          halo.position.set(x, 0.03, z);
-          view.boardGroup.add(halo);
+          buildGoal(view, x, z);
         }
       }
     }

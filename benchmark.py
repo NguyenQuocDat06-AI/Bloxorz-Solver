@@ -1,11 +1,4 @@
-"""
-=============================================================================
-BENCHMARK SUITE - BLOXORZ SOLVER
-=============================================================================
-Chạy tự động 4 thuật toán trên các màn chơi trong thư mục stages/.
-Xuất kết quả ra bảng thống kê và file CSV để nhóm đưa vào Report.pdf.
-=============================================================================
-"""
+"""Đo BFS, IDS, UCS và A* trên các màn JSON."""
 import os
 import sys
 import csv
@@ -30,7 +23,7 @@ OUTPUT_CSV = "benchmark_results.csv"
 
 
 def _solution_cost(problem: BloxorzProblem, path: List[str]) -> float:
-    """Replay every solver's plan against the same cost, outside timed search."""
+    """Tính chi phí chung ngoài thời gian tìm kiếm."""
     state = problem.get_initial_state()
     if not problem.is_valid_state(state):
         raise ValueError("Invalid initial state during benchmark replay")
@@ -49,7 +42,7 @@ def _solution_cost(problem: BloxorzProblem, path: List[str]) -> float:
 
 def run_benchmark():
     if not os.path.exists(STAGES_DIR):
-        print(f"Không tìm thấy thư mục {STAGES_DIR}!")
+        print(f"Không tìm thấy thư mục: {STAGES_DIR}.")
         return
 
     stage_files = sorted([f for f in os.listdir(STAGES_DIR) if f.endswith(".json")])
@@ -67,7 +60,7 @@ def run_benchmark():
     results = []
 
     print("=" * 85)
-    print(f"{'STAGE':<18} | {'SOLVER':<16} | {'STATUS':<9} | {'STEPS':<6} | {'NODES':<8} | {'TIME(ms)':<9} | {'RAM(KB)'} | COST")
+    print(f"{'STAGE':<18} | {'SOLVER':<16} | {'STATUS':<9} | {'STEPS':<6} | {'NODES':<8} | {'TIME(ms)':<9} | {'PEAK(KiB)'} | COST")
     print("=" * 85)
 
     for stage_file in stage_files:
@@ -99,13 +92,12 @@ def run_benchmark():
 
     print("=" * 85)
 
-    # Xuất ra file CSV phục vụ làm biểu đồ trong Report
     if results:
         with open(OUTPUT_CSV, "w", newline="", encoding="utf-8") as f:
             writer = csv.DictWriter(f, fieldnames=["stage", "solver", "status", "steps", "nodes", "time_ms", "ram_kb", "cost", "cost_profile"])
             writer.writeheader()
             writer.writerows(results)
-        print(f"✅ Đã lưu kết quả thực nghiệm vào file: {OUTPUT_CSV}")
+        print(f"Đã lưu kết quả: {OUTPUT_CSV}.")
 
 
 if __name__ == "__main__":
